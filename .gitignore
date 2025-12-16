@@ -1,0 +1,19 @@
+# Node modules
+node_modules
+
+#logs
+/logs
+# Adonis directory for storing tmp files
+tmp
+# Adonis directory for storing public files
+public
+
+# Environment variables, never commit this file
+.env
+**/.DS_Store
+.DS_Store
+.DS_Store?
+._*
+
+# The development sqlite file
+database/*.sqlite
