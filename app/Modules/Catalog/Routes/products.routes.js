@@ -2,10 +2,10 @@
     module.exports = (ApiRoute, Route) => 
     // Protected routes
     ApiRoute(() => {
-      Route.get("/", "productsController.index");
-      Route.post("/", "productsController.store");
-      Route.get("/:id", "productsController.show");
-      Route.put("/:id", "productsController.update");
-      Route.delete("/:id", "productsController.destroy");
+      Route.get("/", "ProductsController.index");
+      Route.post("/", "ProductsController.store");
+      Route.get("/:id", "ProductsController.show");
+      Route.put("/:id", "ProductsController.update");
+      Route.delete("/:id", "ProductsController.destroy");
     }, 'products').namespace("App/Modules/Catalog/Controllers")//.middleware(["auth"]);
     
