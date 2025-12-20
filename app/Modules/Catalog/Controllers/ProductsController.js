@@ -53,10 +53,10 @@ class ProductsController{
     return response.ok(data);
   }
 
-  async getProductsByShop ({ request, response, auth  }) {
+  async getProductsByShop ({ params, request, response }) {
     const filters = request;
-    const UserId = auth.user.id;
-    const data = await new ProductsService().getProductsByShop(filters, UserId);
+    const shopId = params.id;
+    const data = await new ProductsService().getProductsByShop(filters, shopId);
     return response.ok(data);
   }
 

@@ -2,8 +2,6 @@
     'use strict'
     const Database = use("Database");
     const ProductsRepository = use("App/Modules/Catalog/Repositories/ProductsRepository");
-    const ShopService = use('App/Modules/Catalog/Services/ShopService')
-
 
     class ProductsService{
         
@@ -62,9 +60,7 @@
         .first();
     }
 
-    async getProductsByShop(filters, UserId) {
-      const shop = await new ShopService().findShopByUserId(UserId)
-      const shopId = shop.id;
+    async getProductsByShop(filters, ShopId) {
 
       const search = filters.input("search");
       const options = {
@@ -79,7 +75,7 @@
       let query = new ProductsRepository()
         .findAll(search, options) 
         .where(function () {})
-        .where('shopId', shopId)
+        .where('shopId', ShopId)
         .where('is_deleted', 0)
       return query.paginate(options.page, options.perPage || 10);
     }
