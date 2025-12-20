@@ -1,6 +1,6 @@
 /**
  * @swagger
- * /api/v1/categories:
+ * /api/categories:
  *   get:
  *     security:
  *     - bearerAuth: []
@@ -26,15 +26,15 @@
  *         example:
  *           data:
  *             - id: 1
- *               name: "Electronics"
- *               description: "Electronic products"
+ *               name: "Eletrônicos"
+ *               description: "Produtos eletrônicos em geral"
  *       401:
  *         description: Não autorizado
  */
 
 /**
  * @swagger
- * /api/v1/categories:
+ * /api/categories:
  *   post:
  *     security:
  *     - bearerAuth: []
@@ -62,11 +62,13 @@
  *             description: "Electronic products"
  *       422:
  *         description: Erro de validação
+ *       401:
+ *         description: Não autorizado
  */
 
 /**
  * @swagger
- * /api/v1/categories/{id}:
+ * /api/categories/{id}:
  *   get:
  *     security:
  *     - bearerAuth: []
@@ -89,11 +91,13 @@
  *             description: "Electronic products"
  *       404:
  *         description: Categoria não encontrada
+ *       401:
+ *         description: Não autorizado
  */
 
 /**
  * @swagger
- * /api/v1/categories/{id}:
+ * /api/categories/{id}:
  *   put:
  *     security:
  *     - bearerAuth: []
@@ -125,11 +129,13 @@
  *             name: "Electronics & Gadgets"
  *       404:
  *         description: Categoria não encontrada
+ *       401:
+ *         description: Não autorizado
  */
 
 /**
  * @swagger
- * /api/v1/categories/{id}:
+ * /api/categories/{id}:
  *   delete:
  *     security:
  *     - bearerAuth: []
@@ -149,4 +155,6 @@
  *           message: "Categoria eliminada com sucesso"
  *       404:
  *         description: Categoria não encontrada
+ *       401:
+ *         description: Não autorizado
  */

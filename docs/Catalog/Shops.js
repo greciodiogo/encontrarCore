@@ -1,9 +1,9 @@
 /**
  * @swagger
- * /api/v1/shops:
+ * /api/shops:
  *   get:
  *     security:
- *     - bearerAuth: []
+ *       - bearerAuth: []
  *     tags:
  *       - Shops
  *     summary: Listar todas as lojas
@@ -12,10 +12,12 @@
  *         description: Número da página
  *         in: query
  *         type: integer
- *       - name: limit
+ *         default: 1
+ *       - name: perPage
  *         description: Quantidade de registos por página
  *         in: query
  *         type: integer
+ *         default: 10
  *       - name: search
  *         description: Pesquisar por nome
  *         in: query
@@ -29,62 +31,62 @@
  *               name: "Loja Centro"
  *               address: "Rua Principal, 123"
  *               city: "Lisboa"
+ *               phone: "+351 21 1234 5678"
+ *               products: []
  *       401:
  *         description: Não autorizado
  */
 
 /**
  * @swagger
- * /api/v1/shops:
+ * /api/shops:
  *   post:
  *     security:
- *     - bearerAuth: []
+ *       - bearerAuth: []
  *     tags:
  *       - Shops
  *     summary: Criar nova loja
  *     parameters:
- *       - name: name
- *         description: Nome da loja
- *         in: formData
- *         type: string
+ *       - name: body
+ *         in: body
  *         required: true
- *       - name: address
- *         description: Endereço da loja
- *         in: formData
- *         type: string
- *         required: true
- *       - name: city
- *         description: Cidade
- *         in: formData
- *         type: string
- *         required: true
- *       - name: phone
- *         description: Telefone de contacto
- *         in: formData
- *         type: string
- *         required: false
+ *         schema:
+ *           type: object
+ *           required:
+ *             - name
+ *             - address
+ *             - city
+ *           properties:
+ *             name:
+ *               type: string
+ *               example: "Loja Centro"
+ *             address:
+ *               type: string
+ *               example: "Rua Principal, 123"
+ *             city:
+ *               type: string
+ *               example: "Lisboa"
+ *             phone:
+ *               type: string
+ *               example: "+351 21 1234 5678"
  *     responses:
  *       201:
  *         description: Loja criada com sucesso
- *         example:
- *           data:
- *             id: 1
- *             name: "Loja Centro"
- *             address: "Rua Principal, 123"
- *             city: "Lisboa"
- *       422:
+ *       400:
  *         description: Erro de validação
+ *       401:
+ *         description: Não autorizado
  */
 
 /**
  * @swagger
- * /api/v1/shops/{id}:
+ * /api/shops/{id}:
  *   get:
  *     security:
- *     - bearerAuth: []
+ *       - bearerAuth: []
  *     tags:
  *       - Shops
- *     summary: Obter detalhes de uma loja
+ *     summary: Obter detalhes de uma loja com seus produtos
  *     parameters:
  *       - name: id
  *         description: ID da loja
@@ -93,23 +95,26 @@
  *         type: integer
  *     responses:
  *       200:
- *         description: Loja encontrada
+ *         description: Loja encontrada com seus produtos
  *         example:
- *           data:
- *             id: 1
- *             name: "Loja Centro"
- *             address: "Rua Principal, 123"
- *             city: "Lisboa"
+ *           id: 1
+ *           name: "Loja Centro"
+ *           address: "Rua Principal, 123"
+ *           city: "Lisboa"
+ *           phone: "+351 21 1234 5678"
+ *           products: []
  *       404:
  *         description: Loja não encontrada
+ *       401:
+ *         description: Não autorizado
  */
 
 /**
  * @swagger
- * /api/v1/shops/{id}:
+ * /api/shops/{id}:
  *   put:
  *     security:
- *     - bearerAuth: []
+ *       - bearerAuth: []
  *     tags:
  *       - Shops
  *     summary: Atualizar loja
@@ -119,43 +124,35 @@
  *         in: path
  *         required: true
  *         type: integer
- *       - name: name
- *         description: Nome da loja
- *         in: formData
- *         type: string
- *         required: false
- *       - name: address
- *         description: Endereço da loja
- *         in: formData
- *         type: string
- *         required: false
- *       - name: city
- *         description: Cidade
- *         in: formData
- *         type: string
- *         required: false
- *       - name: phone
- *         description: Telefone de contacto
- *         in: formData
- *         type: string
- *         required: false
+ *       - name: body
+ *         in: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *             address:
+ *               type: string
+ *             city:
+ *               type: string
+ *             phone:
+ *               type: string
  *     responses:
  *       200:
  *         description: Loja atualizada com sucesso
- *         example:
- *           data:
- *             id: 1
- *             name: "Loja Centro - Sede"
  *       404:
  *         description: Loja não encontrada
+ *       401:
+ *         description: Não autorizado
  */
 
 /**
  * @swagger
- * /api/v1/shops/{id}:
+ * /api/shops/{id}:
  *   delete:
  *     security:
- *     - bearerAuth: []
+ *       - bearerAuth: []
  *     tags:
  *       - Shops
  *     summary: Eliminar loja
@@ -168,8 +165,8 @@
  *     responses:
  *       200:
  *         description: Loja eliminada com sucesso
- *         example:
- *           message: "Loja eliminada com sucesso"
  *       404:
  *         description: Loja não encontrada
+ *       401:
+ *         description: Não autorizado
  */

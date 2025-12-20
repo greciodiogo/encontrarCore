@@ -7,5 +7,5 @@
       Route.get("/:id", "UsersController.show");
       Route.put("/:id", "UsersController.update");
       Route.delete("/:id", "UsersController.destroy");
-    }, 'users').namespace("App/Modules/Authentication/Controllers")//.middleware(["auth"]);
+    }, 'users').namespace("App/Modules/Authentication/Controllers").middleware(["auth"]);
     

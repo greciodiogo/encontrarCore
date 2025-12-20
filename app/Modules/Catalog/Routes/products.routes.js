@@ -7,5 +7,5 @@
       Route.get("/:id", "ProductsController.show");
       Route.put("/:id", "ProductsController.update");
       Route.delete("/:id", "ProductsController.destroy");
-    }, 'products').namespace("App/Modules/Catalog/Controllers")//.middleware(["auth"]);
+    }, 'products').namespace("App/Modules/Catalog/Controllers").middleware(["auth"]);
     

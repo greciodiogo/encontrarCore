@@ -13,19 +13,11 @@ class AuthenticatedRepository {
   async authenticate(request, auth, response) {
     const { email, password } = request.all();
     try {
-      console.log('Login attempt - Email:', email, 'Password length:', password.length);
-      console.log('Password trimmed:', password.trim());
       
       // Verificar se utilizador existe
       const userExists = await User.findBy("email", email);
-      console.log('User exists:', userExists ? 'SIM' : 'NÃO');
       if (userExists) {
-        console.log('User data:', { id: userExists.id, email: userExists.email, name: userExists.name });
-        console.log('Stored password hash:', userExists.password ? userExists.password.substring(0, 50) + '...' : 'VAZIO');
         
-        // Testar verificação manual de password - ordem correcta: password, hash
-        const isPasswordValid = await Hash.verify(password, userExists.password);
-        console.log('Manual password verify result:', isPasswordValid);
       }
       
       const token = await auth

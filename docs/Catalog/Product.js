@@ -1,6 +1,6 @@
 /**
  * @swagger
- * /api/v1/products:
+ * /api/products:
  *   get:
  *     security:
  *     - bearerAuth: []
@@ -40,7 +40,7 @@
 
 /**
  * @swagger
- * /api/v1/products:
+ * /api/products:
  *   post:
  *     security:
  *     - bearerAuth: []
@@ -88,7 +88,7 @@
 
 /**
  * @swagger
- * /api/v1/products/{id}:
+ * /api/products/{id}:
  *   get:
  *     security:
  *     - bearerAuth: []
@@ -116,7 +116,7 @@
 
 /**
  * @swagger
- * /api/v1/products/{id}:
+ * /api/products/{id}:
  *   put:
  *     security:
  *     - bearerAuth: []
@@ -163,7 +163,7 @@
 
 /**
  * @swagger
- * /api/v1/products/{id}:
+ * /api/products/{id}:
  *   delete:
  *     security:
  *     - bearerAuth: []
