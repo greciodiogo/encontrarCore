@@ -45,22 +45,14 @@ class OrderFactory {
       )
     }
 
-    // 6. Criar itens
-    let items = []
-
     for (const item of pricing.items) {
-      const createdItem = await new OrderItemRepository().create({
+      await new OrderItemRepository().create({
         orderId: order.id,
         productId: item.product_id,
         quantity: item.quantity,
         price: item.price
       })
-
-      // items.push(createdItem)
     }
-
-    
-    await order.load('items')
     return order
   }
 

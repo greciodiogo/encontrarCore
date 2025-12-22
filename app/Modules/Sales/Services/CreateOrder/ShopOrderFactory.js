@@ -7,15 +7,22 @@ const ShopOrderItemRepository = use('App/Modules/Sales/Repositories/ShopOrderIte
 
 class ShopOrderFactory {
   async createFromOrder (order, trx) {
-    console.log(order.items)
+     
+    const orderItems = await Database
+      .table('order_items')
+      .transacting(trx)
+      .where('orderId', order.id)
+
+    if (!orderItems.length) {
+      throw new Error(`Order ${order.id} sem items`)
+    }
+
     const itemsByShop = {}
 
-      await order.load('items')
-
-    for (const item of order.items) {
+    for (const item of orderItems) {
       const shopItem = await Database
-        .table('shop_items')
-        .where('productId', item.productId)
+        .table('products')
+        .where('id', item.productId)
         .first()
         // .transacting(trx)
 
@@ -37,7 +44,7 @@ class ShopOrderFactory {
         0
       )
 
-      const shopOrder = await ShopOrderRepository.create({
+      const shopOrder = await new ShopOrderRepository().create({
         order_id: order.id,
         shop_id: shopId,
         status: 'PENDING',
@@ -45,7 +52,7 @@ class ShopOrderFactory {
       })
 
       for (const item of shopItems) {
-        await ShopOrderItemRepository.create({
+        await new ShopOrderItemRepository().create({
           shop_order_id: shopOrder.id,
           order_item_id: item.id
         })
