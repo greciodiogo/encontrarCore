@@ -38,6 +38,20 @@ class AdminController{
     const data = await new ShopOrderService().getAllOrdersByShop(filters,shopId)
     return response.ok(data);
   }
+
+    async getOrderByShop ({ params, request, response, auth  }) {
+    const filters = request;
+    const UserId = auth.user.id;
+    const OrderId = params.id
+
+    const shop = await new ShopService().findShopByUserId(UserId)
+    const shopId = shop.id;
+
+    const data = await new ShopOrderService().getOrderByShop(OrderId, filters,shopId)
+    return response.ok(data);
+  }
+
+
   async findAllOrderByClient ({ request, response, auth  }) {
     const filters = request;
     const UserEmail = auth.user.email;

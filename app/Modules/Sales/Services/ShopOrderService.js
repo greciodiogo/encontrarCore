@@ -19,17 +19,55 @@
         orderBy: filters.input("orderBy") || "id",
         typeOrderBy: filters.input("typeOrderBy") || "DESC",
         status: filters.input("status") || "",
-        searchBy: ["name", "description"],
+        searchBy: ["status"],
+        isPaginate: true
+      };  
+
+      let query = new ShopOrderRepository()
+        .findAll(search, options) 
+        .innerJoin("orders", "orders.id", "shop_orders.order_id")
+        .where(function () {
+          if (options.status ) {
+            if (options.status == 'LOADING') {
+              this.where('status', 'accepted');
+              } else if(options.status == 'CONFIRMED'){
+              this.where('status', 'delivered');
+              } else {
+              this.where('status', options.status);
+              }
+          }
+        }).where('shop_id', ShopId)
+        // .whereIn('order_id', Database.select('id').from('orders').where("id", "orders.id"))
+      return query.paginate(options.page, options.perPage || 10);
+    }
+
+    async getOrderByShop(OrderId, filters, ShopId) {
+      const search = filters.input("search");
+      const options = {
+        page: filters.input("page") || 1,
+        perPage: filters.input("perPage") || 10,
+        orderBy: filters.input("orderBy") || "id",
+        typeOrderBy: filters.input("typeOrderBy") || "DESC",
+        status: filters.input("status") || "",
+        searchBy: ["status"],
         isPaginate: true
       };  
       
       let query = new ShopOrderRepository()
         .findAll(search, options) 
+        .innerJoin("orders", "orders.id", "shop_orders.order_id")
         .where(function () {
-          if (options.status) {
-            this.where('status', options.status);
+          if (options.status ) {
+              if (options.status == 'loading') {
+            this.where('status', 'accepted');
+              } else {
+                this.where('status', options.status);
+              }
           }
         }).where('shop_id', ShopId)
+        .where('order_id', OrderId)
+        // .whereIn('order_id', Database.select('id').from('orders').where("id", OrderId))
+        .with('orderItems')
       return query.paginate(options.page, options.perPage || 10);
     }
 

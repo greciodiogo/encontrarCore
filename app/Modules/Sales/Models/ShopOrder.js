@@ -9,6 +9,10 @@ class ShopOrder extends Model {
     this.addTrait("@provider:Auditable");
   }
 
+  orderItems() {
+    return this.hasMany('App/Modules/Sales/Models/ShopOrderItem', 'shop_order_id', 'id')
+  }
+
   static get table () {
     return 'shop_orders'
   }
