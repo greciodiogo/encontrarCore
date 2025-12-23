@@ -23,6 +23,26 @@
         .where(function () {}).where('is_deleted', 0)
       return query.paginate(options.page, options.perPage || 10);
     }
+
+    async getProductsByCategory(filters, CategoryId) {
+      const search = filters.input("search");
+      const options = {
+        page: filters.input("page") || 1,
+        perPage: filters.input("perPage") || 10,
+        orderBy: filters.input("orderBy") || "id",
+        typeOrderBy: filters.input("typeOrderBy") || "DESC",
+        searchBy: ["name", "description"],
+        isPaginate: true
+      };
+  
+      let query = new ProductsRepository()
+      .findAll(search, options) 
+      .innerJoin('categories_products_products', 'categories_products_products.productsId', 'products.id')
+        .where(function () {})
+        // .
+        .where('categories_products_products.categoriesId', CategoryId)
+      return query.paginate(options.page, options.perPage || 10);
+    }
     /**
      *
      * @param {*} Payload

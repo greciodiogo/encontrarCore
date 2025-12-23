@@ -53,6 +53,13 @@ class ProductsController{
     return response.ok(data);
   }
 
+  async getProductsByCategory ({ params, request, response,  }) { 
+    const filters = request;
+    const CategoryId = params.id;
+    const data = await new ProductsService().getProductsByCategory(filters, CategoryId);
+    return response.ok(data);
+  } 
+
   async getProductsByShop ({ params, request, response }) {
     const filters = request;
     const shopId = params.id;
