@@ -7,6 +7,7 @@
 const ProductsService = use('App/Modules/Catalog/Services/ProductsService')
 const ShopService = use('App/Modules/Catalog/Services/ShopService')
 const ShopOrderService = use('App/Modules/Sales/Services/ShopOrderService')
+const OrderService = use('App/Modules/Sales/Services/OrderService')
 
 /**
  * Resourceful controller for interacting with icttrunkouts
@@ -33,6 +34,12 @@ class AdminController{
     const UserId = auth.user.id;
     const shop = await new ShopOrderService().getAllOrdersByShop(filters,UserId)
     return response.ok(shop);
+  }
+  async findAllOrderByClient ({ request, response, auth  }) {
+    const filters = request;
+    const UserEmail = auth.user.email;
+    const order = await new OrderService().findAllOrderByClient(filters,UserEmail)
+    return response.ok(order);
   }
 
   async acceptOrderByShop ({ params, response, auth }) {

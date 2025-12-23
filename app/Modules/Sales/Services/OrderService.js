@@ -25,6 +25,23 @@ const CreateOrderUseCase = use('App/Modules/Sales/Services/CreateOrder/CreateOrd
         .where(function () {})//.where('is_deleted', 0)
       return query.paginate(options.page, options.perPage || 10);
     }
+
+    async findAllOrderByClient(filters, UserEmail) {
+      const search = filters.input("search");
+      const options = {
+        page: filters.input("page") || 1,
+        perPage: filters.input("perPage") || 10,
+        orderBy: filters.input("orderBy") || "id",
+        typeOrderBy: filters.input("typeOrderBy") || "DESC",
+        searchBy: ["name", "description"],
+        isPaginate: true
+      };
+  
+      let query = new OrderRepository()
+        .findAll(search, options) 
+        .where(function () {}).where('contactEmail', UserEmail)
+      return query.paginate(options.page, options.perPage || 10);
+    }
     /**
      * Criar uma nova ordem
      * @param {Object} orderData - Dados da ordem (items, delivery, payment, etc)

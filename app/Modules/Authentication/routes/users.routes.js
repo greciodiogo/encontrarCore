@@ -1,4 +1,3 @@
-E
     module.exports = (ApiRoute, Route) => 
     // Protected routes
     ApiRoute(() => {
