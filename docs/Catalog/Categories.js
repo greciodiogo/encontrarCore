@@ -6,33 +6,125 @@
  *     - bearerAuth: []
  *     tags:
  *       - Categories
- *     summary: Listar todas as categorias
+ *     summary: List all categories with pagination
  *     parameters:
  *       - name: page
- *         description: Número da página
+ *         description: Page number
  *         in: query
  *         type: integer
+ *         example: 1
  *       - name: limit
- *         description: Quantidade de registos por página
+ *         description: Items per page
  *         in: query
  *         type: integer
+ *         example: 10
  *       - name: search
- *         description: Pesquisar por nome
+ *         description: Search by category name
  *         in: query
  *         type: string
  *     responses:
  *       200:
- *         description: Lista de categorias recuperada com sucesso
- *         example:
- *           data:
- *             - id: 1
- *               name: "Eletrônicos"
- *               description: "Produtos eletrônicos em geral"
+ *         description: List of categories retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       name:
+ *                         type: string
+ *                         example: "Eletrônicos"
+ *                       description:
+ *                         type: string
+ *                         example: "Produtos eletrônicos em geral"
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                       example: 1
+ *                     per_page:
+ *                       type: integer
+ *                       example: 10
+ *                     current_page:
+ *                       type: integer
+ *                       example: 1
+ *                     last_page:
+ *                       type: integer
+ *                       example: 1
  *       401:
- *         description: Não autorizado
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "E_INVALID_AUTH_TOKEN: JWT token is required to access this endpoint"
  */
 
 /**
+/**
+ * @swagger
+ * /api/categories/buildCategoriesTree:
+ *   get:
+ *     security:
+ *     - bearerAuth: []
+ *     tags:
+ *       - Categories
+ *     summary: Get categories in a hierarchical tree structure
+ *     responses:
+ *       200:
+ *         description: Categories tree retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       name:
+ *                         type: string
+ *                         example: "Parent Category"
+ *                       children:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                               example: 2
+ *                             name:
+ *                               type: string
+ *                               example: "Child Category"
+ *                             parent_id:
+ *                               type: integer
+ *                               example: 1
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "E_INVALID_AUTH_TOKEN: JWT token is required to access this endpoint"
+ *
  * @swagger
  * /api/categories:
  *   post:
