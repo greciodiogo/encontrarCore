@@ -12,6 +12,21 @@ class Products extends Model {
   shop() {
     return this.belongsTo('App/Modules/Catalog/Models/Shops', 'shopId', 'id')
   }
+
+  /**
+   * Relationship with ProductPhotos
+   */
+  photos() {
+    return this.hasMany('App/Modules/Catalog/Models/ProductPhoto', 'productId', 'id')
+  }
+
+  photos() {
+    return this.hasMany(
+      'App/Modules/Catalog/Models/ProductPhoto',
+      'id',                // id of current model (products.id)
+      'productId'          // foreign key in product_photos table
+    )//.where('is_deleted', 0) // Add this if you have soft deletes
+  }
   
   static get createdAtColumn() {
     return 'created'
