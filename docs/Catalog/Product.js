@@ -1,5 +1,64 @@
 /**
  * @swagger
+ * /api/products/category/{id}:
+ *   get:
+ *     security:
+ *     - bearerAuth: []
+ *     tags:
+ *       - Products
+ *     summary: Obter produtos por categoria
+ *     parameters:
+ *       - name: id
+ *         description: ID da categoria
+ *         in: path
+ *         required: true
+ *         type: integer
+ *       - name: page
+ *         description: Número da página
+ *         in: query
+ *         type: integer
+ *       - name: limit
+ *         description: Quantidade de registos por página
+ *         in: query
+ *         type: integer
+ *       - name: search
+ *         description: Pesquisar por nome ou descrição
+ *         in: query
+ *         type: string
+ *       - name: orderBy
+ *         description: Campo para ordenação
+ *         in: query
+ *         type: string
+ *         default: "id"
+ *       - name: typeOrderBy
+ *         description: Tipo de ordenação (ASC ou DESC)
+ *         in: query
+ *         type: string
+ *         enum: [ASC, DESC]
+ *         default: "DESC"
+ *     responses:
+ *       200:
+ *         description: Lista de produtos da categoria recuperada com sucesso
+ *         example:
+ *           data:
+ *             - id: 1
+ *               name: "iPhone 15"
+ *               description: "Último modelo de iPhone"
+ *               price: 999.99
+ *               category_id: 1
+ *           meta:
+ *             total: 1
+ *             per_page: 10
+ *             current_page: 1
+ *             last_page: 1
+ *       404:
+ *         description: Categoria não encontrada
+ *       401:
+ *         description: Não autorizado
+ */
+
+/**
+ * @swagger
  * /api/products:
  *   get:
  *     security:
@@ -36,6 +95,34 @@
  *               category_id: 1
  *       401:
  *         description: Não autorizado
+ */
+
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   get:
+ *     security:
+ *     - bearerAuth: []
+ *     tags:
+ *       - Products
+ *     summary: Obter detalhes de um produto
+ *     parameters:
+ *       - name: id
+ *         description: ID do produto
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Produto encontrado
+ *         example:
+ *           data:
+ *             id: 1
+ *             name: "iPhone 15"
+ *             description: "Latest iPhone model"
+ *             price: 999.99
+ *       404:
+ *         description: Produto não encontrado
  */
 
 /**
@@ -84,34 +171,6 @@
  *             category_id: 1
  *       422:
  *         description: Erro de validação
- */
-
-/**
- * @swagger
- * /api/products/{id}:
- *   get:
- *     security:
- *     - bearerAuth: []
- *     tags:
- *       - Products
- *     summary: Obter detalhes de um produto
- *     parameters:
- *       - name: id
- *         description: ID do produto
- *         in: path
- *         required: true
- *         type: integer
- *     responses:
- *       200:
- *         description: Produto encontrado
- *         example:
- *           data:
- *             id: 1
- *             name: "iPhone 15"
- *             description: "Latest iPhone model"
- *             price: 999.99
- *       404:
- *         description: Produto não encontrado
  */
 
 /**
