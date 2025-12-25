@@ -52,6 +52,11 @@ class AuthenticatedController {
     return data;
   }
 
+   async signup({ request, response, auth }) {
+    const data = this.#authRepo.signup(request, auth, response);
+    return data;
+  }
+
 
   /**
    * refreshToken
