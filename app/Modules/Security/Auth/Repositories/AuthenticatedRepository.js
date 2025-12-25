@@ -35,14 +35,12 @@ class AuthenticatedRepository {
         });
       }
 
-      requestPayload.firstName = requestPayload.firstName;
-      requestPayload.lastName = requestPayload.lastName;
-
       const newUser = await new UserRepository().create({ ...requestPayload})
 
       await this.authenticacao({
         email:newUser.email,
         firstName:requestPayload.firstName,
+        lastName:requestPayload.lastName,
         password:requestPayload.password,
         role: "customer"
       }, auth, response)
