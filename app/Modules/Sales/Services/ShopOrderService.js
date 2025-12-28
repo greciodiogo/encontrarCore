@@ -12,6 +12,7 @@
     constructor(){}
 
     async getAllOrdersByShop(filters, ShopId) {
+      const selectColumn = `shop_orders.*, orders."fullName", orders."contactEmail"`;
       const search = filters.input("search");
       const options = {
         page: filters.input("page") || 1,
@@ -24,20 +25,18 @@
       };  
 
       let query = new ShopOrderRepository()
-        .findAll(search, options) 
+        .findAll(search, options, selectColumn) 
         .innerJoin("orders", "orders.id", "shop_orders.order_id")
         .where(function () {
           if (options.status ) {
             if (options.status == 'LOADING') {
               this.where('shop_orders.status', 'accepted');
               } else if(options.status == 'CONFIRMED'){
-              this.where('orders.status', 'delivered');
+              this.where('orders.status', 'delivered').orWhere('shop_orders.status', 'confirmed');
               } else {
                 this.where('shop_orders.status', 'PENDING');
               }
-            }else {
-                this.where('shop_orders.status', 'PENDING');
-           }
+            }
         }).where('shop_id', ShopId)
         // .whereIn('order_id', Database.select('id').from('orders').where("id", "orders.id"))
       return query.paginate(options.page, options.perPage || 10);
