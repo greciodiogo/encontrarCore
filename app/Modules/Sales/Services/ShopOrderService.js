@@ -42,6 +42,8 @@
     }
 
     async getOrderByShop(OrderId, filters, ShopId) {
+        const selectColumn =
+      `shop_orders.id, shop_orders.order_id, shop_orders.shop_id, shop_orders.status, shop_orders.total_amount, shop_orders.created_at, shop_orders.updated_at, orders."fullName" ,orders."contactEmail"`;
       const search = filters.input("search");
       const options = {
         page: filters.input("page") || 1,
@@ -54,7 +56,7 @@
       };  
       
       let query = new ShopOrderRepository()
-        .findAll(search, options) 
+        .findAll(search, options, selectColumn) 
         .innerJoin("orders", "orders.id", "shop_orders.order_id")
         .where(function () {
           if (options.status ) {
@@ -139,8 +141,11 @@
       const shop = await new ShopService().findShopByUserId(UserId);
       if(!shop) throw new NotForbiddenException();
 
+      const shopOrder =  await this.findShopOrderByOrderId(OrderId);
+      if(!shopOrder) throw new NotFoundException("Pedido da loja não foi encontrado.");
+
       return await new ShopOrderRepository().update(
-        OrderId,
+        shopOrder.id,
         {
         status: Status,
       });  
@@ -155,6 +160,13 @@
       return await new ShopOrderRepository().findById(Id) 
         //.where('is_deleted', 0)
         .first();
+    }
+
+    async findShopOrderByOrderId(OrderId) {
+      return await new ShopOrderRepository()
+        .findAll() 
+        .where('order_id', OrderId).first()
+        // .whereIn('order_id', Database.select('id').from('orders').where("id", "orders.id"))
     }
 
     /**
