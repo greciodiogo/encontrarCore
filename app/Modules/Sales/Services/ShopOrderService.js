@@ -31,11 +31,13 @@
             if (options.status == 'LOADING') {
               this.where('shop_orders.status', 'accepted');
               } else if(options.status == 'CONFIRMED'){
-              this.where('shop_orders.status', 'delivered');
+              this.where('orders.status', 'delivered');
               } else {
-              this.where('shop_orders.status', options.status);
+                this.where('shop_orders.status', 'PENDING');
               }
-          }
+            }else {
+                this.where('shop_orders.status', 'PENDING');
+           }
         }).where('shop_id', ShopId)
         // .whereIn('order_id', Database.select('id').from('orders').where("id", "orders.id"))
       return query.paginate(options.page, options.perPage || 10);
