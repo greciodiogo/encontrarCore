@@ -7,5 +7,5 @@
       Route.get("/:id", "PaymentMethodController.show");
       Route.put("/:id", "PaymentMethodController.update");
       Route.delete("/:id", "PaymentMethodController.destroy");
-    }, 'payment_methods').namespace("App/Modules/Utilitarios/Controllers").middleware(["auth"]);
+    }, 'payment_methods').namespace("App/Modules/Utilitarios/Controllers");
     
