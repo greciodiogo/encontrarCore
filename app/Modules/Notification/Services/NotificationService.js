@@ -56,6 +56,10 @@
       return await this.findNotificationBy(filters, 'userId', UserId);
     }
 
+    async findNotificationByRole(filters, Role) {
+      return await this.findNotificationBy(filters, 'role', Role);
+    }
+
     async findNotificationBy(filters, Column, Value) {
       const search = filters.input("search");
       const options = {

@@ -130,7 +130,7 @@ curl https://seu-dominio.com/api/v1/test/health
 tail -f logs/adonis.log | grep -i "database\|connection"
 
 # Validar dados
-curl https://seu-dominio.com/api/v1/products
+curl https://seu-dominio.com/api/products
 ```
 
 ## Comunicação com Equipe NestJS
