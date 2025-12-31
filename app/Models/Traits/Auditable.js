@@ -145,7 +145,6 @@ async function createAudit(
     }
   } catch (error) {
     // If there's an error getting user (e.g., no JWT), continue with null user
-    console.log('No authenticated user, creating audit log as guest');
   }
 
   const log = await LoggerRepository.register({

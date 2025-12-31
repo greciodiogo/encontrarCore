@@ -41,7 +41,7 @@ class OrderController{
       userId = auth.user ? auth.user.id : null;
     } catch (error) {
       // Se não estiver autenticado, userId permanece null
-      console.log('Usuário não autenticado, criando pedido como convidado');
+      // console.log('Usuário não autenticado, criando pedido como convidado');
     }
     
     try {

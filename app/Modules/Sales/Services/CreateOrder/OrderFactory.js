@@ -24,7 +24,7 @@ class OrderFactory {
 
     // 4. Criar pedido
     const order = await new OrderRepository().create({
-      userId,
+      userId: userId || null,
       fullName: orderData.fullName,
       contactEmail: orderData.contactEmail,
       contactPhone: orderData.contactPhone,

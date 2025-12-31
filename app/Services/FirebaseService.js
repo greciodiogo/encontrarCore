@@ -1,6 +1,11 @@
 'use strict'
 
 const Firebase = require('../../config/firebase')
+const ShopService = use('App/Modules/Catalog/Services/ShopService')
+const UsersService = use('App/Modules/Authentication/Services/UsersService')
+const Database = use("Database");
+
+
 
 class FirebaseService {
   /**
@@ -9,14 +14,9 @@ class FirebaseService {
    */
   async notifyNewOrder(order, orderItems) {
     try {
-      // Buscar informações do cliente e da(s) loja(s)
-      const User = use('App/Modules/Authentication/Models/User')
-      const Shop = use('App/Modules/Catalog/Models/Shops')
-
       // Obter dados do cliente
-      const customer = await User.find(order.user_id)
+      const customer = await new UsersService().findUsersById(order.userId)
       if (!customer) {
-        console.log('Customer not found for order:', order.id)
         return
       }
 
@@ -29,17 +29,28 @@ class FirebaseService {
       const customerData = {
         type: 'new_order',
         orderId: order.id.toString(),
-        orderStatus: order.status,
-        totalAmount: order.total_amount.toString()
+        orderStatus: order.status || 'PENDING'
       }
 
       await this.notifyUser(customer.id, customerNotification, customerData)
 
       // Notificações para os parceiros (shops)
-      const shopIds = [...new Set(orderItems.map(item => item.shop_id))]
+      let shopIds = new Set()
+      for (const item of orderItems) {
+        const shopItem = await Database
+          .table('products')
+          .where('id', item.product_id)
+          .first()
+        // .transacting(trx)
+        if (shopItem && shopItem.shopId) {
+          shopIds.add(shopItem.shopId)
+        }
+      }
+
+
 
       for (const shopId of shopIds) {
-        const shop = await Shop.find(shopId)
+        const shop = await new ShopService().findShopById(shopId)
         if (!shop) continue
 
         const shopNotification = {
@@ -50,14 +61,13 @@ class FirebaseService {
         const shopData = {
           type: 'new_order_shop',
           orderId: order.id.toString(),
-          customerId: order.user_id.toString(),
-          orderStatus: order.status
+          customerId: order.userId.toString(),
+          orderStatus: order.status || 'PENDING'
         }
 
         await this.notifyShopUsers(shopId, shopNotification, shopData)
       }
 
-      console.log('Order notifications sent successfully')
     } catch (error) {
       console.error('Error sending order notifications:', error.message)
     }
@@ -68,15 +78,14 @@ class FirebaseService {
    */
   async notifyUser(userId, notification, data = {}) {
     try {
-      const DeviceToken = use('App/Models/DeviceToken')
-      const tokens = await DeviceToken.where('user_id', userId).fetch()
-
-      if (tokens.size === 0) {
+      const tokens = await Database.table('device_tokens').where('user_id', userId).where('is_active', true).select('token');
+      
+      if (!tokens || tokens.length === 0) {
         console.log(`No tokens found for user ${userId}`)
         return
       }
 
-      const tokenList = tokens.rows.map(t => t.token)
+      const tokenList = tokens.map(t => t.token)
       
       if (tokenList.length === 1) {
         await Firebase.sendNotification(tokenList[0], notification, data)
@@ -93,13 +102,11 @@ class FirebaseService {
    */
   async notifyShopUsers(shopId, notification, data = {}) {
     try {
-      const Database = use('Database')
-      
       // Buscar todos os usuários que trabalham na loja
-      const shopUsers = await Database.table('users')
-        .whereRaw('roles @> ?', [JSON.stringify([{ id: 'seller', name: 'seller' }])])
-        .where('shop_id', shopId)
-        .select('id')
+      const shopUsers = await Database.table('shops').innerJoin('users', 'users.id', 'shops.userId')
+        .where('shops.id', shopId)
+        .where('users.role', 'sales')
+        .select('users.id')
 
       for (const user of shopUsers) {
         await this.notifyUser(user.id, notification, data)
@@ -114,15 +121,13 @@ class FirebaseService {
    */
   async notifyUsers(userIds, notification, data = {}) {
     try {
-      const DeviceToken = use('App/Models/DeviceToken')
-      const tokens = await DeviceToken.whereIn('user_id', userIds).fetch()
-
-      if (tokens.size === 0) {
+      const tokens = await Database.table('device_tokens').whereIn('user_id', userIds).where('is_active', true).select('token');
+      if (!tokens || tokens.length === 0) {
         console.log('No tokens found for users')
         return
       }
 
-      const tokenList = tokens.rows.map(t => t.token)
+      const tokenList = tokens.map(t => t.token)
       await Firebase.sendMulticast(tokenList, notification, data)
     } catch (error) {
       console.error('Error notifying multiple users:', error.message)
@@ -145,15 +150,14 @@ class FirebaseService {
    */
   async subscribeUserToTopic(userId, topic) {
     try {
-      const DeviceToken = use('App/Models/DeviceToken')
-      const tokens = await DeviceToken.where('user_id', userId).fetch()
+      const tokens = await Database.table('device_tokens').where('user_id', userId).where('is_active', true).select('token');
 
-      if (tokens.size === 0) {
+      if (!tokens || tokens.length === 0) {
         console.log(`No tokens found for user ${userId}`)
         return
       }
 
-      const tokenList = tokens.rows.map(t => t.token)
+      const tokenList = tokens.map(t => t.token)
       await Firebase.subscribeToTopic(tokenList, topic)
     } catch (error) {
       console.error('Error subscribing to topic:', error.message)
@@ -165,15 +169,14 @@ class FirebaseService {
    */
   async unsubscribeUserFromTopic(userId, topic) {
     try {
-      const DeviceToken = use('App/Models/DeviceToken')
-      const tokens = await DeviceToken.where('user_id', userId).fetch()
+      const tokens = await Database.table('device_tokens').where('user_id', userId).where('is_active', true).select('token');
 
-      if (tokens.size === 0) {
+      if (!tokens || tokens.length === 0) {
         console.log(`No tokens found for user ${userId}`)
         return
       }
 
-      const tokenList = tokens.rows.map(t => t.token)
+      const tokenList = tokens.map(t => t.token)
       await Firebase.unsubscribeFromTopic(tokenList, topic)
     } catch (error) {
       console.error('Error unsubscribing from topic:', error.message)
@@ -185,8 +188,7 @@ class FirebaseService {
    */
   async notifyOrderStatusUpdate(order, newStatus, message) {
     try {
-      const User = use('App/Models/User')
-      const customer = await User.find(order.user_id)
+      const customer = await Database.table('users').where('id', order.userId).first();
 
       if (!customer) return
 
@@ -212,8 +214,7 @@ class FirebaseService {
    */
   async notifyOrderCancelled(order, reason = '') {
     try {
-      const User = use('App/Models/User')
-      const customer = await User.find(order.user_id)
+      const customer = await new UsersService().findUsersById(order.userId)
 
       if (!customer) return
 

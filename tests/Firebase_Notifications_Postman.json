@@ -1,0 +1,262 @@
+{
+  "info": {
+    "name": "Firebase Push Notifications - Encontrar Shopping",
+    "description": "Coleção de testes para Firebase Push Notifications",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Firebase Connection Test",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3381/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3381",
+          "path": ["health"]
+        },
+        "description": "Verifica se o servidor está rodando\nExecute: node tests/firebase-test.js no terminal"
+      }
+    },
+    {
+      "name": "2. Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"seu-email@example.com\",\"password\":\"sua-senha\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3381/api/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3381",
+          "path": ["api", "auth", "login"]
+        },
+        "description": "Faz login e retorna JWT token\n\nSalve o token para usar nos próximos testes!"
+      }
+    },
+    {
+      "name": "3. Register Device Token (iPhone)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\":\"iphone-device-12345\",\"device_name\":\"iPhone 12 Pro\",\"device_type\":\"mobile\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3381/api/notifications/device-token/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3381",
+          "path": ["api", "notifications", "device-token", "register"]
+        },
+        "description": "Registra um token FCM de um dispositivo iPhone\n\nNota: Substitua YOUR_JWT_TOKEN pelo token obtido em Login"
+      }
+    },
+    {
+      "name": "4. Register Device Token (Android)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\":\"android-device-67890\",\"device_name\":\"Samsung Galaxy S21\",\"device_type\":\"mobile\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3381/api/notifications/device-token/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3381",
+          "path": ["api", "notifications", "device-token", "register"]
+        },
+        "description": "Registra um token FCM de um dispositivo Android"
+      }
+    },
+    {
+      "name": "5. Register Device Token (Tablet)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\":\"tablet-device-11111\",\"device_name\":\"iPad Air\",\"device_type\":\"tablet\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3381/api/notifications/device-token/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3381",
+          "path": ["api", "notifications", "device-token", "register"]
+        },
+        "description": "Registra um token FCM de um tablet"
+      }
+    },
+    {
+      "name": "6. List All Tokens",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3381/api/notifications/device-token/list",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3381",
+          "path": ["api", "notifications", "device-token", "list"]
+        },
+        "description": "Lista todos os tokens FCM registrados do usuário"
+      }
+    },
+    {
+      "name": "7. Get Token Details",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3381/api/notifications/device-token/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3381",
+          "path": ["api", "notifications", "device-token", "1"]
+        },
+        "description": "Obtém detalhes de um token específico\n\nSubstituir \"1\" pelo ID do token"
+      }
+    },
+    {
+      "name": "8. Create Order (DISPARA NOTIFICAÇÕES!)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"items\":[{\"shop_id\":1,\"product_id\":1,\"quantity\":2}],\"delivery_address\":\"Rua X, número 123\",\"payment_method\":\"card\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3381/api/orders",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3381",
+          "path": ["api", "orders"]
+        },
+        "description": "Cria um novo pedido\n\n⚠️ ISTO DISPARARÁ NOTIFICAÇÕES AUTOMÁTICAS!\n\nVerifique os logs do backend:\n✓ \"Order notifications sent successfully\"\n✓ \"Multicast sent. Success: 3, Failed: 0\"\n\nIso significa que 3 notificações foram enviadas ao Firebase!"
+      }
+    },
+    {
+      "name": "9. Unregister Device Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\":\"iphone-device-12345\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3381/api/notifications/device-token/unregister",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3381",
+          "path": ["api", "notifications", "device-token", "unregister"]
+        },
+        "description": "Remove um token FCM específico\n\nÚtil quando o usuário desinstala o app de um dispositivo"
+      }
+    },
+    {
+      "name": "10. Delete All Tokens",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3381/api/notifications/device-token/delete-all",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3381",
+          "path": ["api", "notifications", "device-token", "delete-all"]
+        },
+        "description": "Remove TODOS os tokens do usuário\n\nÚtil para logout"
+      }
+    }
+  ]
+}

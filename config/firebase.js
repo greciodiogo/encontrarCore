@@ -98,6 +98,7 @@ class FirebaseProvider {
       return { successCount: 0, failureCount: 0 }
     }
 
+  try {
     const message = {
       notification: {
         title: notification.title,
@@ -118,18 +119,26 @@ class FirebaseProvider {
         headers: {
           'apns-priority': '10'
         }
-      }
-    }
-
-    try {
-      const response = await admin.messaging().sendMulticast({
-        ...message,
+      },
         tokens: tokens
-      })
+      }
+
+      // Usar sendEachForMulticast - API correta para múltiplos dispositivos
+      const response = await admin.messaging().sendEachForMulticast(message)
 
       console.log(`Multicast sent. Success: ${response.successCount}, Failed: ${response.failureCount}`)
       
-      // Retorna falhas para possível limpeza
+      // Limpar tokens que falharam
+      if (response.failureCount > 0) {
+        const failedTokens = []
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            failedTokens.push(tokens[idx])
+          }
+        })
+        console.log('Failed tokens:', failedTokens)
+      }
+      // Retorna informações da resposta
       return {
         successCount: response.successCount,
         failureCount: response.failureCount,

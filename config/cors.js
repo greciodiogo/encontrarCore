@@ -17,7 +17,20 @@ module.exports = {
   |
   */
  origin: function (currentOrigin) {
-  return currentOrigin === 'http://localhost:3101' || true;
+  // For development, allow all origins
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+
+  // For production, only allow specific origins
+  const allowedOrigins = [
+    'https://admin.encontrarshopping.com',
+    'https://encontrarshopping.com',
+    'https://www.encontrarshopping.com',
+    'https://www.admin.encontrarshopping.com'
+  ];
+  
+  return allowedOrigins.includes(currentOrigin) ? currentOrigin : false;
 },
 
   /*
@@ -31,7 +44,7 @@ module.exports = {
   | Array - An array of allowed methods
   |
   */
-  methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
 
   /*
   |--------------------------------------------------------------------------
@@ -64,7 +77,15 @@ module.exports = {
   | Array - An array of allowed headers
   |
   */
-  exposeHeaders: false,
+  exposeHeaders: [
+    'cache-control',
+    'content-language',
+    'content-type',
+    'expires',
+    'last-modified',
+    'authorization',
+    'x-requested-with',
+  ],
 
   /*
   |--------------------------------------------------------------------------
@@ -75,7 +96,7 @@ module.exports = {
   | boolean.
   |
   */
-  credentials: false,
+  credentials: true,
 
   /*
   |--------------------------------------------------------------------------
