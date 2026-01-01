@@ -37,6 +37,7 @@ const FirebaseService = use('App/Services/FirebaseService')
         perPage: filters.input("perPage") || 10,
         orderBy: filters.input("orderBy") || "orders.id",
         typeOrderBy: filters.input("typeOrderBy") || "DESC",
+        status: filters.input("status") || "",
         searchBy: ["name", "description"],
         isPaginate: true
       };
@@ -47,7 +48,17 @@ const FirebaseService = use('App/Services/FirebaseService')
         .innerJoin('order_payments', 'order_payments.id', 'orders.paymentId')
         .innerJoin('payment_methods', 'payment_methods.id', 'order_payments.methodId')
         .innerJoin('order_deliveries', 'order_deliveries.id', 'orders.deliveryId')
-        .where(function () {}).where('userId', UserId)
+        .where(function () {
+          if (options.status ) {
+            if (options.status == 'LOADING') {
+              this.where('orders.status', 'open');
+              } else if(options.status == 'CONFIRMED'){
+              this.where('orders.status', 'delivered').orWhere('orders.status', 'confirmed');
+              } else {
+                this.where('orders.status', 'pending');
+              }
+            }
+        }).where('userId', UserId)
       return query.paginate(options.page, options.perPage || 10);
     }
     /**
