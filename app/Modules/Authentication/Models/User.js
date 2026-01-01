@@ -20,6 +20,14 @@ class Users extends Model {
     this.addTrait("@provider:Auditable");
   }
 
+  static get createdAtColumn() {
+    return 'registered'
+  }
+
+  static get updatedAtColumn() {
+    return 'registered'
+  }
+
   static get table () {
     return 'users'
   }
