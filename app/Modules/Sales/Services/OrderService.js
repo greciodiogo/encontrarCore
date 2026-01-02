@@ -70,16 +70,14 @@ const FirebaseService = use('App/Services/FirebaseService')
     async createdOrders(orderData, userId = null) {
        const order = await new CreateOrderUseCase().execute(orderData, userId);
        
-       // Enviar notificações após criar o pedido
+       // Enviar notificações em background (não aguardar)
        if (order && order.id) {
-         try {
-           const firebaseService = new FirebaseService()
-           const orderItems = orderData.items || []
-           await firebaseService.notifyNewOrder(order, orderItems)
-         } catch (error) {
+         const orderItems = orderData.items || []
+         // Dispara as notificações sem bloquear a resposta
+         const firebaseService = new FirebaseService()
+         firebaseService.notifyNewOrder(order, orderItems).catch(error => {
            console.error('Error sending notifications for new order:', error.message)
-           // Não falhar a criação do pedido se houver erro nas notificações
-         }
+         })
        }
        
        return order;

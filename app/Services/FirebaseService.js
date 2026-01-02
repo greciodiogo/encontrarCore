@@ -14,8 +14,8 @@ class FirebaseService {
    */
   async notifyNewOrder(order, orderItems) {
     try {
-      // Obter dados do cliente
-      const customer = await new UsersService().findUsersById(order.userId)
+      // Buscar cliente usando Database em vez de Service (mais rápido)
+      const customer = await Database.table('users').where('id', order.userId).first()
       if (!customer) {
         return
       }
@@ -34,29 +34,28 @@ class FirebaseService {
 
       await this.notifyUser(customer.id, customerNotification, customerData)
 
-      // Notificações para os parceiros (shops)
-      let shopIds = new Set()
-      for (const item of orderItems) {
-        const shopItem = await Database
+      // Otimizar: Buscar todos os shopIds em uma única query
+      if (orderItems && orderItems.length > 0) {
+        const productIds = orderItems.map(item => item.product_id)
+        
+        // Uma única query para pegar todos os shops
+        const shopProducts = await Database
           .table('products')
-          .where('id', item.product_id)
-          .first()
-        // .transacting(trx)
-        if (shopItem && shopItem.shopId) {
-          shopIds.add(shopItem.shopId)
-        }
-      }
+          .whereIn('id', productIds)
+          .distinct('shopId')
+          .select('shopId')
+        
+        // Extrair shopIds únicos
+        const shopIds = [...new Set(shopProducts.map(p => p.shopId).filter(id => id))]
 
-
-
-      for (const shopId of shopIds) {
-        const shop = await new ShopService().findShopById(shopId)
-        if (!shop) continue
-
-        const shopNotification = {
-          title: 'Novo Pedido',
-          body: `Você recebeu um novo pedido #${order.id}`
-        }
+        // Notificar para cada shop em paralelo
+        await Promise.all(
+          shopIds.map(async (shopId) => {
+            try {
+              const shopNotification = {
+                title: 'Novo Pedido',
+                body: `Você recebeu um novo pedido #${order.id}`
+              }
 
         const shopData = {
           type: 'new_order_shop',
@@ -66,6 +65,11 @@ class FirebaseService {
         }
 
         await this.notifyShopUsers(shopId, shopNotification, shopData)
+            } catch (error) {
+              console.error(`Error notifying shop ${shopId}:`, error.message)
+            }
+          })
+        )
       }
 
     } catch (error) {
