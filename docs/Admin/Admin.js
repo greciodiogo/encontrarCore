@@ -299,3 +299,78 @@
  *       404:
  *         description: Loja não encontrada
  */
+
+/**
+ * @swagger
+ * /api/admin/client/info:
+ *   get:
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Admin
+ *     summary: Obter informações do cliente autenticado
+ *     description: Retorna informações detalhadas do perfil do cliente autenticado
+ *     responses:
+ *       200:
+ *         description: Informações do cliente recuperadas com sucesso
+ *         example:
+ *           data:
+ *             id: 189
+ *             firstName: "João"
+ *             lastName: "Silva"
+ *             email: "joao@example.com"
+ *             phone: "+244912345678"
+ *             role: "customer"
+ *             created_at: "2023-01-01T12:00:00.000Z"
+ *             updated_at: "2023-01-15T10:30:00.000Z"
+ *       401:
+ *         description: Não autorizado
+ *       403:
+ *         description: Acesso negado (apenas para clientes)
+ */
+
+/**
+ * @swagger
+ * /api/admin/client/notifications:
+ *   get:
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Admin
+ *     summary: Obter notificações do cliente autenticado
+ *     description: Retorna lista de todas as notificações do cliente autenticado
+ *     parameters:
+ *       - name: page
+ *         description: Número da página
+ *         in: query
+ *         type: integer
+ *       - name: limit
+ *         description: Quantidade de registos por página
+ *         in: query
+ *         type: integer
+ *       - name: is_read
+ *         description: Filtrar por estado de leitura (true/false)
+ *         in: query
+ *         type: boolean
+ *     responses:
+ *       200:
+ *         description: Lista de notificações do cliente recuperada com sucesso
+ *         example:
+ *           data:
+ *             - id: 1
+ *               title: "Pedido Confirmado"
+ *               message: "Seu pedido #175 foi recebido e está sendo preparado."
+ *               type: "order"
+ *               is_read: false
+ *               created_at: "2023-01-01T12:00:00.000Z"
+ *             - id: 2
+ *               title: "Atualização de Pedido"
+ *               message: "Seu pedido #175 foi atualizado para SHIPPED"
+ *               type: "order_status_update"
+ *               is_read: true
+ *               created_at: "2023-01-02T10:30:00.000Z"
+ *       401:
+ *         description: Não autorizado
+ *       403:
+ *         description: Acesso negado (apenas para clientes)
+ */

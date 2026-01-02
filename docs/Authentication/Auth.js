@@ -51,6 +51,69 @@
 
 /**
  * @swagger
+ * /api/auth/signup:
+ *   post:
+ *     tags:
+ *       - Authentication
+ *     summary: Registar novo utilizador
+ *     description: Criar uma nova conta de utilizador com email e password
+ *     parameters:
+ *       - name: body
+ *         in: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           required:
+ *             - email
+ *             - password
+ *             - password_confirmation
+ *           properties:
+ *             email:
+ *               type: string
+ *               format: email
+ *               example: newuser@example.com
+ *             password:
+ *               type: string
+ *               format: password
+ *               example: "SecurePassword123"
+ *               description: Mínimo 6 caracteres
+ *             password_confirmation:
+ *               type: string
+ *               format: password
+ *               example: "SecurePassword123"
+ *               description: Deve corresponder ao campo password
+ *     responses:
+ *       201:
+ *         description: Utilizador registado com sucesso
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               example: "Utilizador criado com sucesso"
+ *             user:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 email:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *       400:
+ *         description: Dados inválidos ou email já registado
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               example: "Email já existe na base de dados"
+ *       422:
+ *         description: Erro de validação
+ */
+
+/**
+ * @swagger
  * /api/auth/logout:
  *   post:
  *     security:

@@ -125,6 +125,13 @@ class AdminController{
   const data = await new NotificationService().findNotificationByUserId(filters, UserId);
   return response.ok(data);
   }
+
+  async getNotificationsByUser ({ request, response, auth  }) {
+  const filters = request;
+  const UserId = auth.user.id;
+  const data = await new NotificationService().findNotificationByUserId(filters, UserId);
+  return response.ok(data);
+  }
   
 }
 
