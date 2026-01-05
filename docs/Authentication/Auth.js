@@ -23,6 +23,19 @@
  *               type: string
  *               format: password
  *               example: "123456"
+ *             fcm_token:
+ *               type: string
+ *               example: "eUdcqsqPMXN5c3X7PYbDQA:APA91bXXXXXXXXXXXXXXXX"
+ *               description: "Token FCM do dispositivo (opcional - registra automaticamente o token para push notifications)"
+ *             device_name:
+ *               type: string
+ *               example: "iPhone 12"
+ *               description: "Nome do dispositivo (opcional, usado com fcm_token)"
+ *             device_type:
+ *               type: string
+ *               enum: ["mobile", "tablet", "web"]
+ *               example: "mobile"
+ *               description: "Tipo de dispositivo (opcional, padrão: mobile)"
  *     responses:
  *       200:
  *         description: Login bem-sucedido
@@ -82,6 +95,19 @@
  *               format: password
  *               example: "SecurePassword123"
  *               description: Deve corresponder ao campo password
+ *             fcm_token:
+ *               type: string
+ *               example: "eUdcqsqPMXN5c3X7PYbDQA:APA91bXXXXXXXXXXXXXXXX"
+ *               description: "Token FCM do dispositivo (opcional - registra automaticamente o token para push notifications)"
+ *             device_name:
+ *               type: string
+ *               example: "iPhone 12"
+ *               description: "Nome do dispositivo (opcional, usado com fcm_token)"
+ *             device_type:
+ *               type: string
+ *               enum: ["mobile", "tablet", "web"]
+ *               example: "mobile"
+ *               description: "Tipo de dispositivo (opcional, padrão: mobile)"
  *     responses:
  *       201:
  *         description: Utilizador registado com sucesso
@@ -121,6 +147,17 @@
  *     tags:
  *       - Authentication
  *     summary: Fazer logout
+ *     parameters:
+ *       - name: body
+ *         in: body
+ *         required: false
+ *         schema:
+ *           type: object
+ *           properties:
+ *             fcm_token:
+ *               type: string
+ *               example: "eUdcqsqPMXN5c3X7PYbDQA:APA91bXXXXXXXXXXXXXXXX"
+ *               description: "Token FCM do dispositivo (opcional - desregistra automaticamente o token)"
  *     responses:
  *       200:
  *         description: Logout bem-sucedido

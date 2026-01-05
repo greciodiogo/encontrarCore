@@ -30,18 +30,37 @@ class DeviceToken extends Model {
 
   /**
    * Registra ou atualiza um token de dispositivo
+   * @param {Object|number} userIdOrPayload - user_id ou objeto com {user_id, token, device_name, device_type}
+   * @param {string} token - token FCM (opcional se primeiro param é objeto)
+   * @param {string} deviceName - nome do dispositivo (opcional)
+   * @param {string} deviceType - tipo de dispositivo (padrão: mobile)
    */
-  static async registerToken(userId, token, deviceName, deviceType = 'mobile') {
+  static async registerToken(userIdOrPayload, token, deviceName, deviceType = 'mobile') {
     try {
+      let userId, fcmToken, devName, devType
+      
+      // Suporta dois formatos: registerToken(userId, token, name, type) ou registerToken({user_id, token, device_name, device_type})
+      if (typeof userIdOrPayload === 'object') {
+        userId = userIdOrPayload.user_id
+        fcmToken = userIdOrPayload.token
+        devName = userIdOrPayload.device_name || 'Mobile Device'
+        devType = userIdOrPayload.device_type || 'mobile'
+      } else {
+        userId = userIdOrPayload
+        fcmToken = token
+        devName = deviceName || 'Mobile Device'
+        devType = deviceType || 'mobile'
+      }
+
       // Verifica se o token já existe para este usuário
       let deviceToken = await this.where('user_id', userId)
-        .where('token', token)
+        .where('token', fcmToken)
         .first()
 
       if (deviceToken) {
         // Atualiza o token existente
-        deviceToken.device_name = deviceName
-        deviceToken.device_type = deviceType
+        deviceToken.device_name = devName
+        deviceToken.device_type = devType
         deviceToken.is_active = true
         await deviceToken.save()
         return deviceToken
@@ -50,9 +69,9 @@ class DeviceToken extends Model {
       // Cria novo token
       deviceToken = await this.create({
         user_id: userId,
-        token: token,
-        device_name: deviceName,
-        device_type: deviceType,
+        token: fcmToken,
+        device_name: devName,
+        device_type: devType,
         is_active: true
       })
 
@@ -65,10 +84,18 @@ class DeviceToken extends Model {
 
   /**
    * Desativa um token de dispositivo
+   * @param {string} token - token FCM
+   * @param {number} userId - user_id (opcional, para validar que o token pertence ao usuário)
    */
-  static async deactivateToken(token) {
+  static async deactivateToken(token, userId = null) {
     try {
-      const deviceToken = await this.where('token', token).first()
+      let query = this.where('token', token)
+      
+      if (userId) {
+        query = query.where('user_id', userId)
+      }
+      
+      const deviceToken = await query.first()
       if (deviceToken) {
         deviceToken.is_active = false
         await deviceToken.save()
@@ -78,6 +105,7 @@ class DeviceToken extends Model {
       console.error('Error deactivating device token:', error.message)
       throw error
     }
+  }
   }
 
   /**

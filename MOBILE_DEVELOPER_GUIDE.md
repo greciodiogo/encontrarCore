@@ -26,7 +26,7 @@ Este documento contém tudo o que você precisa saber sobre a integração de **
 **POST** `/api/notifications/device-token/register`
 
 ```bash
-curl -X POST http://localhost:3381/api/notifications/device-token/register \
+curl -X POST https://portal-api.encontrarshopping.com//api/notifications/device-token/register \
   -H "Authorization: Bearer JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -54,7 +54,7 @@ curl -X POST http://localhost:3381/api/notifications/device-token/register \
 **GET** `/api/notifications/device-token/list`
 
 ```bash
-curl http://localhost:3381/api/notifications/device-token/list \
+curl https://portal-api.encontrarshopping.com//api/notifications/device-token/list \
   -H "Authorization: Bearer JWT_TOKEN"
 ```
 
@@ -63,7 +63,7 @@ curl http://localhost:3381/api/notifications/device-token/list \
 **POST** `/api/notifications/device-token/unregister`
 
 ```bash
-curl -X POST http://localhost:3381/api/notifications/device-token/unregister \
+curl -X POST https://portal-api.encontrarshopping.com//api/notifications/device-token/unregister \
   -H "Authorization: Bearer JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"token": "eUdcqsqPMXN5c3X7PYbDQA:APA91bXXXXXXXXXXXXXXXX"}'
@@ -321,7 +321,7 @@ App mostra motivo do cancelamento
 4. Use o Postman para criar pedido:
 
 ```bash
-curl -X POST http://localhost:3381/api/orders \
+curl -X POST https://portal-api.encontrarshopping.com//api/orders \
   -H "Authorization: Bearer JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"items":[{"product_id":1,"quantity":2}]}'

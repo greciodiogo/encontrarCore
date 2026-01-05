@@ -1,6 +1,7 @@
 "use strict";
 const UsersService = use('App/Modules/Authentication/Services/UsersService')
-const NotFoundException = use("App/Exceptions/NotFoundException");      
+const NotFoundException = use("App/Exceptions/NotFoundException");
+const DeviceToken = use('App/Models/DeviceToken');      
 class AuthenticatedRepository {
   constructor() { }
   /**
@@ -9,18 +10,25 @@ class AuthenticatedRepository {
    * @param {Object} auth - auth object
    * @param {Object} response - response object
    */
-    async authenticate(options, auth, response) {
-      const request = options.request;
-      const { email, password } = request.all();
-      try{
+  async authenticate(options, auth, response) {
+    const request = options.request;
+    const { email, password, fcm_token, device_name, device_type } = request.all();
+    try{
+      // Obter o user_id ANTES de fazer login
+      const user = await new UsersService().findUsersByEmail(email);
+      
       await this.authenticacao( {email, password, role: options.role}, auth, response );
-      }catch(e){
-        console.log(e)
-      }
+      
+      // Registar FCM token se foi fornecido
+      await this.registerFcmToken(user, fcm_token, device_name, device_type);
+    }catch(e){
+      console.log(e)
+    }
   }
 
     async signup(request, auth, response) {
     const requestPayload = request.all();
+    const { fcm_token, device_name, device_type } = requestPayload;
     
     try {
       const existingUser = await new UsersService().findUsersByEmail(requestPayload.email);
@@ -42,6 +50,9 @@ class AuthenticatedRepository {
         password:requestPayload.password,
         role: "customer"
       }, auth, response)
+      
+      // Registar FCM token se foi fornecido
+      await this.registerFcmToken(newUser, fcm_token, device_name, device_type);
       
     } catch (e) {
       console.log(e)
@@ -112,11 +123,62 @@ class AuthenticatedRepository {
     try {
       const check = await auth.check();
       if (check) {
+        const user = await auth.getUser();
+        const { fcm_token } = request.all();
+        
+        // Desregistar FCM token se foi fornecido
+        if (fcm_token && user && user.id) {
+          await this.deactivateFcmToken(fcm_token, user.id);
+        }
+        
         await auth.logout();
         return true;
       }
     } catch (error) {
       return false;
+    }
+  }
+
+  /**
+   * Registar token FCM para um utilizador
+   * @param {Object} user - Objeto utilizador com id
+   * @param {string} fcmToken - Token FCM
+   * @param {string} deviceName - Nome do dispositivo
+   * @param {string} deviceType - Tipo de dispositivo
+   */
+  async registerFcmToken(user, fcmToken, deviceName, deviceType) {
+    if (!fcmToken || !user || !user.id) {
+      return;
+    }
+
+    try {
+      await DeviceToken.registerToken({
+        user_id: user.id,
+        token: fcmToken,
+        device_name: deviceName || 'Mobile Device',
+        device_type: deviceType || 'mobile'
+      });
+    } catch (tokenError) {
+      console.error('Erro ao registar FCM token:', tokenError.message);
+      // Não bloqueia a autenticação se falhar o registro do token
+    }
+  }
+
+  /**
+   * Desativar token FCM para um utilizador
+   * @param {string} fcmToken - Token FCM
+   * @param {number} userId - ID do utilizador
+   */
+  async deactivateFcmToken(fcmToken, userId) {
+    if (!fcmToken || !userId) {
+      return;
+    }
+
+    try {
+      await DeviceToken.deactivateToken(fcmToken, userId);
+    } catch (tokenError) {
+      console.error('Erro ao desativar FCM token:', tokenError.message);
+      // Não bloqueia o logout se falhar
     }
   }
 }
