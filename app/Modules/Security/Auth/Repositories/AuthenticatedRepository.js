@@ -118,7 +118,7 @@ class AuthenticatedRepository {
     delete responseAdapter.user.created_at;
     delete responseAdapter.user.role;
     delete responseAdapter.user.updated_at;
-    return response,Adapter;
+    return responseAdapter;
   }
 
 
