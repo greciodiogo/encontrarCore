@@ -1,5 +1,4 @@
 'use strict'
-const DeviceToken = use('App/Models/DeviceToken')
 const DeviceTokenService = use('App/Modules/Authentication/Services/DeviceTokenService')
 class DeviceTokenController {
   constructor() {}

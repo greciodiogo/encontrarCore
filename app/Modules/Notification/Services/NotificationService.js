@@ -32,7 +32,7 @@
     async createdNotifications(ModelPayload, UserId) {
       return await new NotificationRepository().create({
         ...ModelPayload,
-        user_id: UserId,
+        userId: UserId,
       });  
     }
      

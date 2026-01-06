@@ -4,6 +4,7 @@ const Firebase = require('../../config/firebase')
 const ShopService = use('App/Modules/Catalog/Services/ShopService')
 const UsersService = use('App/Modules/Authentication/Services/UsersService')
 const Database = use("Database");
+const NotificationService = use('App/Modules/Notification/Services/NotificationService')
 
 
 
@@ -14,6 +15,7 @@ class FirebaseService {
    */
   async notifyNewOrder(order, orderItems) {
     try {
+      console.log('Notificando novo pedido:', order.id)
       // Buscar cliente usando Database em vez de Service (mais rápido)
       const customer = await Database.table('users').where('id', order.userId).first()
       if (!customer) {
@@ -32,6 +34,14 @@ class FirebaseService {
         orderStatus: order.status || 'PENDING'
       }
 
+      // 1. Armazenar notificação na BD
+      await new NotificationService().createdNotifications({
+        title: customerNotification.title,
+        message: customerNotification.body,
+        type: 'new_order'
+      }, customer.id)
+
+      // 2. Enviar push notification via Firebase
       await this.notifyUser(customer.id, customerNotification, customerData)
 
       // Otimizar: Buscar todos os shopIds em uma única query
@@ -64,7 +74,25 @@ class FirebaseService {
           orderStatus: order.status || 'PENDING'
         }
 
-        await this.notifyShopUsers(shopId, shopNotification, shopData)
+              // // Buscar shop owners/managers
+              // const shopUsers = await Database.table('shops')
+              //   .innerJoin('users', 'users.id', 'shops.userId')
+              //   .where('shops.id', shopId)
+              //   .where('users.role', 'sales')
+              //   .select('users.id')
+
+              // // Armazenar e notificar cada shop user
+              // for (const shopUser of shopUsers) {
+              //   // Armazenar na BD
+              //   await new NotificationService().createdNotifications({
+              //     title: shopNotification.title,
+              //     message: shopNotification.body,
+              //     type: 'new_order_shop'
+              //   }, shopUser.id)
+
+              //   // Enviar push notification
+              //   await this.notifyUser(shopUser.id, shopNotification, shopData)
+              // }
             } catch (error) {
               console.error(`Error notifying shop ${shopId}:`, error.message)
             }
@@ -75,9 +103,7 @@ class FirebaseService {
     } catch (error) {
       console.error('Error sending order notifications:', error.message)
     }
-  }
-
-  /**
+  }  /**
    * Envia notificação para um usuário específico
    */
   async notifyUser(userId, notification, data = {}) {

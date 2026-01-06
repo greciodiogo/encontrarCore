@@ -16,17 +16,41 @@ class FirebaseProvider {
 
     try {
       // Obtém as credenciais do arquivo JSON ou das variáveis de ambiente
-      const serviceAccount = JSON.parse(Env.get('FIREBASE_SERVICE_ACCOUNT'))
+      const firebaseServiceAccountJson = Env.get('FIREBASE_SERVICE_ACCOUNT')
+      
+      if (!firebaseServiceAccountJson) {
+        throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set. Please add your Firebase service account JSON to .env file.')
+      }
+
+      const serviceAccount = typeof firebaseServiceAccountJson === 'string' 
+        ? JSON.parse(firebaseServiceAccountJson)
+        : firebaseServiceAccountJson
+
+      if (!serviceAccount || typeof serviceAccount !== 'object') {
+        throw new Error('FIREBASE_SERVICE_ACCOUNT must be a valid JSON object or JSON string')
+      }
+
+      // Validar campos obrigatórios da service account
+      if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
+        throw new Error('FIREBASE_SERVICE_ACCOUNT JSON is missing required fields: project_id, private_key, or client_email')
+      }
 
       firebaseApp = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
+        projectId: serviceAccount.project_id,
         databaseURL: Env.get('FIREBASE_DATABASE_URL', '')
       })
 
-      console.log('Firebase initialized successfully')
+      // Verificar que o messaging service está disponível
+      const messaging = admin.messaging()
+      if (!messaging) {
+        throw new Error('Firebase Messaging service failed to initialize')
+      }
+
+      console.log(`✓ Firebase initialized successfully for project: ${serviceAccount.project_id}`)
       return firebaseApp
     } catch (error) {
-      console.error('Error initializing Firebase:', error.message)
+      console.error('✗ Error initializing Firebase:', error.message)
       throw error
     }
   }
@@ -38,9 +62,14 @@ class FirebaseProvider {
    * @param {object} data - Dados adicionais a enviar
    */
   static async sendNotification(token, notification, data = {}) {
-    if (!firebaseApp) {
-      this.initialize()
-    }
+    try {
+      if (!firebaseApp) {
+        this.initialize()
+      }
+
+      if (!token) {
+        throw new Error('Token is required to send notification')
+      }
 
     const message = {
       notification: {
@@ -72,12 +101,11 @@ class FirebaseProvider {
       }
     }
 
-    try {
       const response = await admin.messaging().send(message)
-      console.log('Notification sent successfully:', response)
+      console.log('✓ Notification sent successfully:', response)
       return response
     } catch (error) {
-      console.error('Error sending notification:', error.message)
+      console.error('✗ Error sending notification:', error.message)
       throw error
     }
   }
@@ -89,16 +117,16 @@ class FirebaseProvider {
    * @param {object} data - Dados adicionais
    */
   static async sendMulticast(tokens, notification, data = {}) {
-    if (!firebaseApp) {
-      this.initialize()
-    }
+    try {
+      if (!firebaseApp) {
+        this.initialize()
+      }
 
-    if (tokens.length === 0) {
-      console.log('No tokens provided for multicast')
-      return { successCount: 0, failureCount: 0 }
-    }
+      if (!tokens || tokens.length === 0) {
+        console.log('No tokens provided for multicast')
+        return { successCount: 0, failureCount: 0 }
+      }
 
-  try {
     const message = {
       notification: {
         title: notification.title,
@@ -119,14 +147,16 @@ class FirebaseProvider {
         headers: {
           'apns-priority': '10'
         }
-      },
-        tokens: tokens
+        }
       }
 
       // Usar sendEachForMulticast - API correta para múltiplos dispositivos
-      const response = await admin.messaging().sendEachForMulticast(message)
+      const response = await admin.messaging().sendEachForMulticast({
+        ...message,
+        tokens: tokens
+      })
 
-      console.log(`Multicast sent. Success: ${response.successCount}, Failed: ${response.failureCount}`)
+      console.log(`✓ Multicast sent. Success: ${response.successCount}, Failed: ${response.failureCount}`)
       
       // Limpar tokens que falharam
       if (response.failureCount > 0) {
@@ -134,10 +164,11 @@ class FirebaseProvider {
         response.responses.forEach((resp, idx) => {
           if (!resp.success) {
             failedTokens.push(tokens[idx])
+            console.error(`  - Token failed: ${tokens[idx]}, Error: ${resp.error?.message}`)
           }
         })
-        console.log('Failed tokens:', failedTokens)
       }
+
       // Retorna informações da resposta
       return {
         successCount: response.successCount,
@@ -145,7 +176,7 @@ class FirebaseProvider {
         responses: response.responses
       }
     } catch (error) {
-      console.error('Error sending multicast:', error.message)
+      console.error('✗ Error sending multicast:', error.message)
       throw error
     }
   }

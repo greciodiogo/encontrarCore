@@ -9,17 +9,20 @@ class Notification extends Model {
     this.addTrait("@provider:Auditable");
   }
 
+  static get table () {
+    return 'notifications'
+  }
+
   static get createdAtColumn() {
-    return 'created'
+    return 'createdAt'
   }
 
   static get updatedAtColumn() {
-    return 'updated'
+    return null // Não há coluna de update
   }
 
-
-  static get table () {
-    return 'notifications'
+  static get fillable() {
+    return ['user_id', 'userId', 'title', 'message', 'type', 'isRead', 'data']
   }
 }
 
