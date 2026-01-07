@@ -106,6 +106,20 @@ class FirebaseProvider {
       return response
     } catch (error) {
       console.error('✗ Error sending notification:', error.message)
+      
+      // Diagnóstico específico para SenderId mismatch
+      if (error.message && error.message.includes('SenderId mismatch')) {
+        console.error('🔍 DIAGNÓSTICO - SenderId Mismatch:')
+        console.error('  1. Token foi gerado com SenderId diferente do projeto atual')
+        console.error('  2. Verifique se app mobile usa google-services.json correto')
+        console.error('  3. SenderId deve corresponder ao project_number do Firebase')
+        console.error('  4. Execute: node fix-firebase-senderId.js para mais detalhes')
+        console.error(`  5. Token problemático: ${token.substring(0, 20)}...`)
+      } else if (error.message && error.message.includes('registration-token-not-registered')) {
+        console.error('🔍 Token expirado ou app desinstalado')
+        console.error(`  Token: ${token.substring(0, 20)}...`)
+      }
+      
       throw error
     }
   }
