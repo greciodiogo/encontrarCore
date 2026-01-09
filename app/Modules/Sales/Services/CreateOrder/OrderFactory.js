@@ -7,6 +7,7 @@ const OrderRepository = use('App/Modules/Sales/Repositories/OrderRepository')
 const DeliveryMethodRepository = use('App/Modules/Sales/Repositories/DeliveryMethodRepository')
 const OrderDeliveriesRepository = use('App/Modules/Sales/Repositories/OrderDeliveriesRepository')
 const PaymentMethodRepository = use('App/Modules/Sales/Repositories/PaymentMethodRepository')
+const AddressRepository = use("App/Modules/CRM/Repositories/EnderecoRepository");
 
 class OrderFactory {
   async create (orderData, userId, trx) {
