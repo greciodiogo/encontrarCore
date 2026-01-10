@@ -44,7 +44,7 @@ const FirebaseService = use('App/Services/FirebaseService')
   
       let query = new OrderRepository()
         .findAll(search, options, selectColumn) 
-        .innerJoin('shop_orders', 'shop_orders.order_id', 'orders.id')
+        // .innerJoin('shop_orders', 'shop_orders.order_id', 'orders.id')
         .innerJoin('order_payments', 'order_payments.id', 'orders.paymentId')
         .innerJoin('payment_methods', 'payment_methods.id', 'order_payments.methodId')
         .innerJoin('order_deliveries', 'order_deliveries.id', 'orders.deliveryId')
