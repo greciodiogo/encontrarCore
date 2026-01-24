@@ -76,7 +76,6 @@
         let query = new NotificationRepository()
           .findAll(search, options)
           .where(function () {
-            console.log('options.isRead', options.isRead);
           if (options.isRead == true) {
             this.where('isRead', true);
             } else if (options.isRead == false) {
@@ -113,7 +112,7 @@
           return await Database.table("notifications")
             .where("userId", UserId)
             .where("isRead", false)
-            .update({isRead: false});
+            .update({isRead: true});
       }
 
       async updatedNotification(Id, ModelPayload) {
