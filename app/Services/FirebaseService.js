@@ -15,22 +15,25 @@ class FirebaseService {
    */
   async notifyNewOrder(order, orderItems) {
     try {
-      console.log('Notificando novo pedido:', order.id)
       // Buscar cliente usando Database em vez de Service (mais rápido)
       const customer = await Database.table('users').where('id', order.userId).first()
       if (!customer) {
         return
       }
 
+      // Usar order_number se disponível, senão usar id
+      const orderIdentifier = order.order_number || order.id
+
       // Notificação para o cliente
       const customerNotification = {
         title: 'Pedido Confirmado',
-        body: `Seu pedido #${order.id} foi recebido e está sendo preparado.`
+        body: `O seu pedido #${orderIdentifier} foi recebido e está sendo preparado.`
       }
 
       const customerData = {
         type: 'new_order',
         orderId: order.id.toString(),
+        orderNumber: orderIdentifier.toString(),
         orderStatus: order.status || 'PENDING'
       }
 
@@ -64,12 +67,13 @@ class FirebaseService {
             try {
               const shopNotification = {
                 title: 'Novo Pedido',
-                body: `Você recebeu um novo pedido #${order.id}`
+                body: `Você recebeu um novo pedido #${orderIdentifier}`
               }
 
         const shopData = {
           type: 'new_order_shop',
           orderId: order.id.toString(),
+          orderNumber: orderIdentifier.toString(),
           customerId: order.userId.toString(),
           orderStatus: order.status || 'PENDING'
         }
@@ -252,14 +256,17 @@ class FirebaseService {
 
       if (!customer) return
 
+      const orderIdentifier = order.order_number || order.id
+
       const notification = {
         title: 'Atualização de Pedido',
-        body: message || `Seu pedido #${order.id} foi atualizado para ${newStatus}`
+        body: message || `O seu pedido #${orderIdentifier} foi atualizado para ${newStatus}`
       }
 
       const data = {
         type: 'order_status_update',
         orderId: order.id.toString(),
+        orderNumber: orderIdentifier.toString(),
         orderStatus: newStatus
       }
 
@@ -278,14 +285,17 @@ class FirebaseService {
 
       if (!customer) return
 
+      const orderIdentifier = order.order_number || order.id
+
       const notification = {
         title: 'Pedido Cancelado',
-        body: `Seu pedido #${order.id} foi cancelado. ${reason}`
+        body: `O seu pedido #${orderIdentifier} foi cancelado. ${reason}`
       }
 
       const data = {
         type: 'order_cancelled',
         orderId: order.id.toString(),
+        orderNumber: orderIdentifier.toString(),
         reason: reason
       }
 
