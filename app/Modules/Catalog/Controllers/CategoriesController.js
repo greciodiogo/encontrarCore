@@ -30,6 +30,21 @@ class CategoriesController{
     const data = await new CategoriesService().buildCategoriesTree(filters);
     return response.ok(data);
   }
+
+  /**
+   * Get subcategories of a specific category
+   * GET /categories/:id/subcategories
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   * @param {Object} ctx.params
+   */
+  async getSubcategories ({ params, response }) {
+    const parentCategoryId = params.id;
+    const data = await new CategoriesService().getSubcategories(parentCategoryId);
+    return response.ok(data);
+  }
   /**
    * Create/save a new icttrunkout.
    * POST icttrunkouts

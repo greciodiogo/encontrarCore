@@ -77,7 +77,7 @@
         map[category.id] = {
           ...category,
           iconUrl: category.icon_path ? this.getIconUrl(category.icon_path) : null,
-          children: []
+          childCategories: [] // Changed from 'children' to 'childCategories'
         };
       });
 
@@ -86,7 +86,7 @@
         if (category.parentCategoryId) {
           const parent = map[category.parentCategoryId];
           if (parent) {
-            parent.children.push(map[category.id]);
+            parent.childCategories.push(map[category.id]); // Changed from 'children' to 'childCategories'
           }
         } else {
           roots.push(map[category.id]);
@@ -94,6 +94,28 @@
       });
 
       return roots;
+    }
+
+    /**
+     * Get subcategories of a specific category
+     * @param {number} parentCategoryId - Parent category ID
+     * @returns {Promise<Array>} Array of subcategories
+     */
+    async getSubcategories(parentCategoryId) {
+      const selectColumn =
+        `categories.id, categories.name, categories.description, categories.slug, categories."parentCategoryId", categories.icon_path`;
+
+      const subcategoriesResult = await this.categoriesRepository
+        .findAll('', { isPaginate: false }, selectColumn)
+        .where('parentCategoryId', parentCategoryId)
+        .fetch();
+
+      const subcategories = subcategoriesResult.toJSON();
+
+      return subcategories.map(cat => ({
+        ...cat,
+        iconUrl: cat.icon_path ? this.getIconUrl(cat.icon_path) : null
+      }));
     }
 
     /**
