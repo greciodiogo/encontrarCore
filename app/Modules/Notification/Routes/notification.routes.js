@@ -15,6 +15,13 @@ module.exports = (ApiRoute, Route) => {
     Route.get("/device-token/list", "DeviceTokenController.list");
     Route.get("/device-token/:id", "DeviceTokenController.show");
     Route.delete("/device-token/delete-all", "DeviceTokenController.deleteAll");
+    
+    // Test Notification Routes (Protected - requires auth)
+    Route.post("/test/send-to-me", "TestNotificationController.sendToMe");
+    Route.post("/test/send-to-token", "TestNotificationController.sendToToken");
+    Route.get("/test/check-config", "TestNotificationController.checkConfig");
+    Route.get("/test/my-tokens", "TestNotificationController.myTokens");
+    Route.post("/test/broadcast", "TestNotificationController.broadcast");
   }, 'notifications').namespace("App/Modules/Notification/Controllers").middleware(["auth"]);
 
   // Test routes (no auth required for testing)

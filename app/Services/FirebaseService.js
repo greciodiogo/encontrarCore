@@ -108,22 +108,52 @@ class FirebaseService {
    */
   async notifyUser(userId, notification, data = {}) {
     try {
-      const tokens = await Database.table('device_tokens').where('user_id', userId).where('is_active', true).select('token');
+      const tokens = await Database.table('device_tokens').where('user_id', userId).where('is_active', true).select('id', 'token');
       
       if (!tokens || tokens.length === 0) {
         console.log(`No tokens found for user ${userId}`)
         return
       }
 
-      const tokenList = tokens.map(t => t.token)
+      const tokenList = tokens.map(t => ({ id: t.id, token: t.token }))
       
       if (tokenList.length === 1) {
-        await Firebase.sendNotification(tokenList[0], notification, data)
+        const result = await Firebase.sendNotification(tokenList[0].token, notification, data)
+        
+        // Desativar token se inválido
+        if (!result.success && result.shouldDeactivate) {
+          await this.deactivateToken(tokenList[0].id)
+        }
       } else {
-        await Firebase.sendMulticast(tokenList, notification, data)
+        // Enviar para múltiplos tokens
+        for (const tokenData of tokenList) {
+          const result = await Firebase.sendNotification(tokenData.token, notification, data)
+          
+          // Desativar token se inválido
+          if (!result.success && result.shouldDeactivate) {
+            await this.deactivateToken(tokenData.id)
+          }
+        }
       }
     } catch (error) {
       console.error('Error notifying user:', error.message)
+    }
+  }
+
+  /**
+   * Desativa um token no banco de dados
+   */
+  async deactivateToken(tokenId) {
+    try {
+      await Database.table('device_tokens')
+        .where('id', tokenId)
+        .update({
+          is_active: false,
+          updated_at: new Date()
+        })
+      console.log(`🗑️  Token ${tokenId} desativado automaticamente`)
+    } catch (error) {
+      console.error('Error deactivating token:', error.message)
     }
   }
 

@@ -61,6 +61,7 @@ class FirebaseProvider {
    * @param {string} token - Token FCM do dispositivo
    * @param {object} notification - Objeto com title e body
    * @param {object} data - Dados adicionais a enviar
+   * @returns {object} { success: boolean, messageId?: string, error?: string, shouldDeactivate?: boolean }
    */
   static async sendNotification(token, notification, data = {}) {
     try {
@@ -104,24 +105,31 @@ class FirebaseProvider {
 
       const response = await admin.messaging().send(message)
       console.log('✓ Notification sent successfully:', response)
-      return response
+      return { success: true, messageId: response }
     } catch (error) {
       console.error('✗ Error sending notification:', error.message)
       
-      // Diagnóstico específico para SenderId mismatch
-      if (error.message && error.message.includes('SenderId mismatch')) {
+      // Determinar se o token deve ser desativado
+      let shouldDeactivate = false
+      
+      if (error.code === 'messaging/registration-token-not-registered' ||
+          error.code === 'messaging/invalid-registration-token' ||
+          error.message.includes('Requested entity was not found') ||
+          error.message.includes('not a valid FCM registration token')) {
+        shouldDeactivate = true
+        console.error('🔍 Token inválido ou expirado - deve ser desativado')
+      } else if (error.message && error.message.includes('SenderId mismatch')) {
+        shouldDeactivate = true
         console.error('🔍 DIAGNÓSTICO - SenderId Mismatch:')
         console.error('  1. Token foi gerado com SenderId diferente do projeto atual')
         console.error('  2. Verifique se app mobile usa google-services.json correto')
-        console.error('  3. SenderId deve corresponder ao project_number do Firebase')
-        console.error('  4. Execute: node fix-firebase-senderId.js para mais detalhes')
-        console.error(`  5. Token problemático: ${token.substring(0, 20)}...`)
-      } else if (error.message && error.message.includes('registration-token-not-registered')) {
-        console.error('🔍 Token expirado ou app desinstalado')
-        console.error(`  Token: ${token.substring(0, 20)}...`)
       }
       
-      throw error
+      return { 
+        success: false, 
+        error: error.message,
+        shouldDeactivate: shouldDeactivate
+      }
     }
   }
 
