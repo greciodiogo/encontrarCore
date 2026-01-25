@@ -4,6 +4,7 @@
     ApiRoute(() => {
       Route.get("/", "CategoriesController.index");
       Route.get("/buildCategoriesTree", "CategoriesController.buildCategoriesTree");
+      Route.get("/:id/subcategories", "CategoriesController.getSubcategories");
       Route.post("/", "CategoriesController.store").middleware(["auth"]);
       Route.get("/:id", "CategoriesController.show");
       Route.put("/:id", "CategoriesController.update").middleware(["auth"]);
