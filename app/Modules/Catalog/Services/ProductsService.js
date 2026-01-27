@@ -12,7 +12,7 @@
       const search = filters.input("search");
       const options = {
         page: filters.input("page") || 1,
-        perPage: filters.input("perPage") || 10,
+        perPage: filters.input("perPage") || 6,
         orderBy: filters.input("orderBy") || "id",
         typeOrderBy: filters.input("typeOrderBy") || "DESC",
         searchBy: ["name", "description"],
@@ -31,7 +31,7 @@
       const search = filters.input("search");
       const options = {
         page: filters.input("page") || 1,
-        perPage: filters.input("perPage") || 10,
+        perPage: filters.input("perPage") || 6,
         orderBy: filters.input("orderBy") || "id",
         typeOrderBy: filters.input("typeOrderBy") || "DESC",
         searchBy: ["name", "description"],
