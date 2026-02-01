@@ -123,7 +123,14 @@ module.exports = {
     migrations: 'migrations',
     seeds: 'seeds',
     debug: Env.get('DB_DEBUG', false),
-    pool: { min: 2, max: 10 },
+    pool: { 
+      min: 2, 
+      max: 20,  // Aumentado de 10 para 20
+      acquireTimeoutMillis: 60000,  // 60 segundos para adquirir conexão
+      idleTimeoutMillis: 30000,  // 30 segundos de idle antes de fechar
+      createTimeoutMillis: 30000,  // 30 segundos para criar conexão
+      reapIntervalMillis: 1000  // Verificar conexões idle a cada 1 segundo
+    },
     ssl: true
   }
 }
