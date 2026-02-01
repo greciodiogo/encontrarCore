@@ -16,22 +16,44 @@ class AuthenticatedRepository {
   async authenticate(options, auth, response) {
     const request = options.request;
     const { email, password, fcm_token, device_name, device_type } = request.all();
+    
+    console.log('🔐 Iniciando autenticação:', {
+      email,
+      hasFcmToken: !!fcm_token,
+      deviceName: device_name,
+      deviceType: device_type
+    });
+    
     try{
       // Obter o user_id ANTES de fazer login
       const user = await new UsersService().findUsersByEmail(email);
       
+      console.log('👤 Usuário encontrado:', {
+        userId: user?.id,
+        email: user?.email
+      });
+      
       await this.authenticacao( {email, password, role: options.role}, auth, response );
       
       // Registar FCM token se foi fornecido
+      console.log('📱 Tentando registrar FCM token...');
       await this.registerFcmToken(user, fcm_token, device_name, device_type);
     }catch(e){
-      console.log(e)
+      console.error('❌ Erro na autenticação:', e.message);
+      console.error('Stack:', e.stack);
     }
   }
 
     async signup(request, auth, response) {
     const requestPayload = request.all();
     const { fcm_token, device_name, device_type } = requestPayload;
+    
+    console.log('📝 Iniciando signup:', {
+      email: requestPayload.email,
+      hasFcmToken: !!fcm_token,
+      deviceName: device_name,
+      deviceType: device_type
+    });
     
     try {
       const existingUser = await new UsersService().findUsersByEmail(requestPayload.email);
@@ -50,6 +72,11 @@ class AuthenticatedRepository {
         lastName:requestPayload.lastName,
         password:requestPayload.password,
       })
+      
+      console.log('✅ Novo usuário criado:', {
+        userId: newUser.id,
+        email: newUser.email
+      });
 
       await this.authenticacao({
         email:newUser.email,
@@ -60,10 +87,12 @@ class AuthenticatedRepository {
       }, auth, response)
       
       // Registar FCM token se foi fornecido
+      console.log('📱 Tentando registrar FCM token no signup...');
       await this.registerFcmToken(newUser, fcm_token, device_name, device_type);
       
     } catch (e) {
-      console.log(e)
+      console.error('❌ Erro no signup:', e.message);
+      console.error('Stack:', e.stack);
       return response.unauthorized(null, {
         title: "Falha na Autenticação",
         message:
@@ -155,18 +184,33 @@ class AuthenticatedRepository {
    */
   async registerFcmToken(user, fcmToken, deviceName, deviceType) {
     if (!fcmToken || !user || !user.id) {
+      console.log('⚠️  FCM Token não registrado - dados insuficientes:', {
+        hasFcmToken: !!fcmToken,
+        hasUser: !!user,
+        hasUserId: !!(user && user.id)
+      });
       return;
     }
 
     try {
+      console.log('📱 Registrando FCM token:', {
+        userId: user.id,
+        deviceName: deviceName || 'Mobile Device',
+        deviceType: deviceType || 'mobile',
+        tokenPreview: fcmToken.substring(0, 20) + '...'
+      });
+      
       await new DeviceTokenService().registerToken(
         user.id,
         fcmToken,
-        `Device-${new Date().getTime()}` || 'Mobile Device',
-        'mobile'
+        deviceName || 'Mobile Device',
+        deviceType || 'mobile'
       );
+      
+      console.log('✅ FCM token registrado com sucesso para user:', user.id);
     } catch (tokenError) {
-      console.error('Erro ao registar FCM token:', tokenError.message);
+      console.error('❌ Erro ao registar FCM token:', tokenError.message);
+      console.error('Stack:', tokenError.stack);
       // Não bloqueia a autenticação se falhar o registro do token
     }
   }

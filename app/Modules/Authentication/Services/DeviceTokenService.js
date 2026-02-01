@@ -25,9 +25,17 @@
     } 
 
     async registerToken(userId, token, deviceName, deviceType = 'mobile') {
+      console.log('🔧 DeviceTokenService.registerToken chamado:', {
+        userId,
+        tokenPreview: token ? token.substring(0, 20) + '...' : 'null',
+        deviceName,
+        deviceType
+      });
 
       let deviceToken = await this.findDeviceTokenByName(token)
+      
       if(deviceToken){
+        console.log('♻️  Token já existe, atualizando:', deviceToken.id);
         return await this.updatedDeviceToken(deviceToken.id, {
         device_name: deviceName,
         device_type: deviceType,
@@ -35,13 +43,17 @@
         })
       }
       
-      return await new DeviceTokenRepository().create({
+      console.log('➕ Criando novo token no banco de dados...');
+      const result = await new DeviceTokenRepository().create({
         token: token,
         device_name: deviceName,
         device_type: deviceType,
         is_active: true,
         user_id: userId,
-      });  
+      });
+      
+      console.log('✅ Token criado com sucesso:', result.id);
+      return result;
     }
      
     async findDeviceTokenById(id) {
