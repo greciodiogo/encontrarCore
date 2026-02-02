@@ -82,7 +82,7 @@ class ResetPasswordController {
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #DC9E00;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -101,10 +101,9 @@ class ResetPasswordController {
             text-align: center;
             margin-bottom: 30px;
         }
-        .logo h1 {
-            color: #667eea;
-            font-size: 32px;
-            font-weight: bold;
+        .logo img {
+            max-width: 200px;
+            height: auto;
         }
         h2 {
             color: #333;
@@ -138,13 +137,13 @@ class ResetPasswordController {
         }
         input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #DC9E00;
+            box-shadow: 0 0 0 3px rgba(220, 158, 0, 0.1);
         }
         .btn {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #DC9E00;
             color: white;
             border: none;
             border-radius: 10px;
@@ -156,7 +155,7 @@ class ResetPasswordController {
         }
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(220, 158, 0, 0.3);
         }
         .btn:active {
             transform: translateY(0);
@@ -196,7 +195,7 @@ class ResetPasswordController {
         }
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #DC9E00;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -217,7 +216,8 @@ class ResetPasswordController {
 <body>
     <div class="container">
         <div class="logo">
-            <h1>🛍️ ENCONTRAR</h1>
+            <img src="https://encontrarshopping.com/logo-encontrar.png" alt="Encontrar" onerror="this.style.display='none'; document.querySelector('.logo-text').style.display='block';">
+            <h1 class="logo-text" style="display:none; color: #DC9E00; font-size: 32px; font-weight: bold;">ENCONTRAR</h1>
         </div>
         <h2>Redefinir Senha</h2>
         <p class="subtitle">Digite sua nova senha abaixo</p>

@@ -16,6 +16,15 @@ class User extends Model {
       return access
     }
 
+  // Disable automatic timestamps since the table uses 'registered' instead
+  static get createdAtColumn() {
+    return null
+  }
+
+  static get updatedAtColumn() {
+    return null
+  }
+
   static get traits() {
     return [
       "@provider:Adonis/Acl/HasRole",
