@@ -5,13 +5,26 @@ const NotFoundException = use("App/Exceptions/NotFoundException");
 class EnvioEmail {
   async emailService(emailConfig, cb) {
 
+    const smtpPort = parseInt(Env.get('SMTP_PORT', Env.get('MAIL_PORT', 587)));
+    const smtpHost = Env.get('SMTP_HOST', Env.get('MAIL_HOST', 'smtp.gmail.com'));
+    const emailUser = Env.get('EMAIL_USER', Env.get('EMAIL_FROM'));
+    const emailPass = Env.get('EMAIL_PASS', Env.get('MAIL_PASSWORD'));
+    const smtpSecure = Env.get('SMTP_SECURE', false) === 'true' || Env.get('SMTP_SECURE', false) === true;
+
+    if (!emailUser || !emailPass) {
+      const error = new Error('Email credentials not configured. Check EMAIL_USER and EMAIL_PASS in .env');
+      console.error('❌ Email Error:', error.message);
+      if (cb) cb(error, null);
+      return;
+    }
+
     let transporter = nodemailer.createTransport({
-      port: Env.get('SMTP_PORT', 587),
-      host: Env.get('SMTP_HOST', 'smtp.gmail.com'),
-      secure: Env.get('SMTP_SECURE', false) === 'true' || Env.get('SMTP_SECURE', false) === true,
+      port: smtpPort,
+      host: smtpHost,
+      secure: smtpSecure,
       auth: {
-        user: Env.get('EMAIL_FROM'),
-        pass: Env.get('MAIL_PASSWORD')
+        user: emailUser,
+        pass: emailPass
       }
     });
 
@@ -26,9 +39,10 @@ class EnvioEmail {
   }
 
   async sendMail(transporter, emailConfig, cb) {
+    const fromEmail = Env.get('EMAIL_USER', Env.get('EMAIL_FROM'));
     
     transporter.sendMail({
-      from: `Angola Telecom <${Env.get('EMAIL_FROM')}> `,
+      from: `Encontrar <${fromEmail}>`,
       to: emailConfig.email,
       subject: emailConfig?.subject,
       text: emailConfig.text ? emailConfig.text : '',
@@ -37,7 +51,11 @@ class EnvioEmail {
       attachments: emailConfig.attachment ? emailConfig.attachment : []
 
     }, function (err, info) {
-      console.log(err, info);
+      if (err) {
+        console.error('❌ Email sending failed:', err);
+      } else {
+        console.log('✅ Email sent successfully:', info);
+      }
       if(cb) cb(err, info);
     })
 
