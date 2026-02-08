@@ -139,21 +139,46 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async deleteAccount ({ params, auth, response }) {
+  async deleteAccount ({ params, auth, request, response }) {
+    const trx = await Database.beginTransaction();
+    
     try {
       const userId = auth.user.id;
       
-      // Soft delete - marca como deletado
-      await this.#UserRepo.update(userId, { is_deleted: true });
+      // Usar transação para garantir atomicidade
+      // 1. Soft delete - marca como deletado
+      await Database
+        .table('users')
+        .transacting(trx)
+        .where('id', userId)
+        .update({ is_deleted: true});
       
-      // Fazer logout
-      await auth.logout();
+      // 2. Desativar TODOS os tokens FCM do usuário
+      await Database
+        .table('device_tokens')
+        .transacting(trx)
+        .where('user_id', userId)
+        .andWhere('is_active', true)
+        .update({ is_active: false, updated_at: new Date() });
+      
+      // Commit da transação - garante que ambas operações foram bem sucedidas
+      await trx.commit();
+      
+      // 3. Fazer logout (fora da transação - se falhar não afeta a remoção da conta)
+      try {
+        await auth.logout();
+      } catch (logoutError) {
+        console.error('Erro ao fazer logout (conta já foi removida):', logoutError.message);
+        // Não bloqueia - a conta já foi removida com sucesso
+      }
       
       return response.ok(null, { message: 'Conta removida com sucesso' });
     } catch (error) {
+      // Rollback em caso de erro - nenhuma operação é aplicada
+      await trx.rollback();
+      console.error('Erro ao remover conta:', error);
       return response.status(500).json({
-        error: 'Erro ao remover conta',
-        details: error.message
+        message: 'Erro ao remover conta. Por favor, tente novamente.'
       });
     }
   }
