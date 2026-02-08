@@ -17,12 +17,18 @@
         typeOrderBy: filters.input("typeOrderBy") || "DESC",
         searchBy: ["name", "description"],
         isPaginate: true,
-        withRalationships: ["photos"]
+        withRalationships: ["photos"],
+        isVisible: filters.input("isVisible") !== undefined ? filters.input("isVisible") : true
       };
       
       let query = new ProductsRepository()
       .findAll(search, options) 
-      .where(function () {}).where('is_deleted', 0)
+      .where(function () {
+        if (options.isVisible) {
+          this.where('visible', true)
+        }
+      })
+      .where('is_deleted', 0)
       .with('photos')
       return query.paginate(options.page, options.perPage || 10);
     }
@@ -36,15 +42,20 @@
         typeOrderBy: filters.input("typeOrderBy") || "DESC",
         searchBy: ["name", "description"],
         withRalationships: ["photos"],
-        isPaginate: true
+        isPaginate: true,
+        isVisible: filters.input("isVisible") !== undefined ? filters.input("isVisible") : true
       };
       
       let query = new ProductsRepository()
       .findAll(search, options) 
       .innerJoin('categories_products_products', 'categories_products_products.productsId', 'products.id')
-      .where(function () {})
-      // .
-      .where('categories_products_products.categoriesId', CategoryId)
+      .where(function () {
+        this.where('categories_products_products.categoriesId', CategoryId)
+        this.where('products.is_deleted', 0)
+        if (options.isVisible) {
+          this.where('products.visible', true)
+        }
+      })
       .with('photos')
       return query.paginate(options.page, options.perPage || 10);
     }
@@ -95,14 +106,19 @@
         orderBy: filters.input("orderBy") || "id",
         typeOrderBy: filters.input("typeOrderBy") || "DESC",
         searchBy: ["name", "description"],
-        isPaginate: true
+        isPaginate: true,
+        isVisible: filters.input("isVisible") !== undefined ? filters.input("isVisible") : true
       };
   
       let query = new ProductsRepository()
         .findAll(search, options) 
-        .where(function () {})
-        .where('shopId', ShopId)
-        .where('is_deleted', 0)
+        .where(function () {
+          this.where('shopId', ShopId)
+          this.where('is_deleted', 0)
+          if (options.isVisible) {
+            this.where('visible', true)
+          }
+        })
       return query.paginate(options.page, options.perPage || 10);
     }
 
@@ -116,16 +132,21 @@
         typeOrderBy: filters.input("typeOrderBy") || "DESC",
         searchBy: ["name", "description"],
         withRalationships: ["photos"],
-        isPaginate: true
+        isPaginate: true,
+        isVisible: filters.input("isVisible") !== undefined ? filters.input("isVisible") : true
       };
       
       let query = new ProductsRepository()
         .findAll(search, options, selectColumn) 
         .innerJoin('categories_products_products', 'categories_products_products.productsId', 'products.id')
         .innerJoin('categories', 'categories.id', 'categories_products_products.categoriesId')
-        .where(function () {})
-        .where('categories.slug', slug)
-        .where('products.is_deleted', 0)
+        .where(function () {
+          this.where('categories.slug', slug)
+          this.where('products.is_deleted', 0)
+          if (options.isVisible) {
+            this.where('products.visible', true)
+          }
+        })
         .with('photos')
       return query.paginate(options.page, options.perPage || 10);
     }
