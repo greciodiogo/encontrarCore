@@ -9,6 +9,6 @@ module.exports = (ApiRoute, Route) =>
 
     Route.put("/updateStatus/:id", "UserController.updateStatus");
     Route.put("/password/resetByUser/:id","UserController.changePassword");
+    Route.delete("/account/delete", "UserController.deleteAccount");
 
   }, "users_").namespace('App/Modules/Security/Users/Controllers').middleware(["auth"]);
-

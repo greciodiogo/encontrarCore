@@ -132,6 +132,33 @@ class UserController {
   }
 
   /**
+   * Delete account (soft delete for mobile users)
+   * DELETE Users/account/:id
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+  async deleteAccount ({ params, auth, response }) {
+    try {
+      const userId = auth.user.id;
+      
+      // Soft delete - marca como deletado
+      await this.#UserRepo.update(userId, { is_deleted: true });
+      
+      // Fazer logout
+      await auth.logout();
+      
+      return response.ok(null, { message: 'Conta removida com sucesso' });
+    } catch (error) {
+      return response.status(500).json({
+        error: 'Erro ao remover conta',
+        details: error.message
+      });
+    }
+  }
+
+  /**
    * Update User details.
    * PUT or PATCH Users/:id
    *

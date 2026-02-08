@@ -133,8 +133,13 @@ class AuthenticatedRepository {
   async findByUserAuth(email, role) {
     let existingUser = await new UsersService().findUsersByEmail(email, role);
   
-     if (!existingUser) {
+    if (!existingUser) {
       throw new NotFoundException("Usuário não encontrado");
+    }
+
+    // Verificar se a conta foi deletada
+    if (existingUser.is_deleted) {
+      throw new NotFoundException("Esta conta foi removida");
     }
 
     const responseAdapter = Object.assign(
