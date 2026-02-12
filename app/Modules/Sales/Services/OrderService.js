@@ -45,7 +45,7 @@ const FirebaseService = use('App/Services/FirebaseService')
           'orders.id',
           'orders.order_number',
           'orders.status',
-          'orders.created_at as created',
+          'orders.created',
           'orders.fullName as client',
           'orders.contactPhone',
           'orders.contactEmail',
