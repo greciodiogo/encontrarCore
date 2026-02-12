@@ -1,4 +1,4 @@
-'use strict'
+﻿'use strict'
 
 const Database = use("Database")
 const OrderRepository = use("App/Modules/Sales/Repositories/OrderRepository")
@@ -49,7 +49,6 @@ const FirebaseService = use('App/Services/FirebaseService')
           'orders.fullName as client',
           'orders.contactPhone',
           'orders.contactEmail',
-          'orders.total_amount as total',
           'payment_methods.name as payment_method',
           'order_deliveries.address as delivery_address',
           'order_deliveries.price as delivery_tax'
@@ -115,10 +114,15 @@ const FirebaseService = use('App/Services/FirebaseService')
             })
           );
 
+          const total = itemsWithPhotos.reduce((sum, item) => {
+            return sum + (parseFloat(item.price) * item.quantity);
+          }, 0);
+
           return {
             ...order,
             items: itemsWithPhotos,
-            total_items: itemsWithPhotos.length
+            total_items: itemsWithPhotos.length,
+            total: total
           };
         })
       );
