@@ -44,11 +44,13 @@
         .first();
     }
 
-    async findUsersByEmail(Email, role = null) {
+    async findUsersByEmail(Email, role = null, includeDeleted = false) {
       const selectColumn = '"id", "firstName", "lastName", "email", "role", "registered" as created_at, "default_phone", "default_payment", "default_city", "default_address", "password", "is_deleted"';
       return await new UsersRepository().findAll(null, {}, selectColumn) 
        .where(function () {
-          this.where('is_deleted', 0);
+          if (!includeDeleted) {
+            this.where('is_deleted', 0);
+          }
           if (role === 'sales') {
             this.where('role', 'sales');
           }

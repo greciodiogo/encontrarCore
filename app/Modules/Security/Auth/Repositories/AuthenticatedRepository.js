@@ -56,7 +56,8 @@ class AuthenticatedRepository {
     });
     
     try {
-      const existingUser = await new UsersService().findUsersByEmail(requestPayload.email);
+      // Buscar usuário incluindo contas deletadas
+      const existingUser = await new UsersService().findUsersByEmail(requestPayload.email, null, true);
 
       if (existingUser) {
         // Se a conta foi deletada, reativar
@@ -81,8 +82,8 @@ class AuthenticatedRepository {
               updated_at: new Date()
             });
           
-          // Buscar usuário atualizado
-          const reactivatedUser = await new UsersService().findUsersByEmail(requestPayload.email);
+          // Buscar usuário atualizado (sem incluir deletados)
+          const reactivatedUser = await new UsersService().findUsersByEmail(requestPayload.email, null, false);
           
           console.log('✅ Conta reativada com sucesso:', {
             userId: reactivatedUser.id,
