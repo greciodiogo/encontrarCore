@@ -78,8 +78,7 @@ class AuthenticatedRepository {
               is_deleted: false,
               firstName: requestPayload.firstName,
               lastName: requestPayload.lastName,
-              password: hashedPassword,
-              updated_at: new Date()
+              password: hashedPassword
             });
           
           // Buscar usuário atualizado (sem incluir deletados)
