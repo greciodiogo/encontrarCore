@@ -1,12 +1,71 @@
 'use strict'
 
 const SplashScreenRepository = use('App/Modules/Utilitarios/Repositories/SplashScreenRepository')
-const Helpers = use('Helpers')
-const fs = require('fs').promises
+const LocalFilesService = use('App/Services/LocalFilesService')
+const Env = use('Env')
+const sharp = require('sharp')
 
 class SplashScreenService {
   constructor() {
     this.repository = new SplashScreenRepository()
+    this.localFilesService = new LocalFilesService()
+  }
+
+  /**
+   * Obter URL pública do Supabase
+   */
+  getPublicUrl(path) {
+    const supabaseUrl = Env.get('SUPABASE_URL')
+    const bucket = Env.get('SUPABASE_BUCKET', 'uploads')
+    return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`
+  }
+
+  /**
+   * Upload de splash screen para Supabase (pasta específica: uploads/splash/)
+   */
+  async uploadSplashImage(file) {
+    try {
+      const extension = 'jpg'
+      const originalName = file.clientName || file.originalname || 'splash'
+      const safeName = originalName.replace(/\.[^/.]+$/, '').replace(/\s+/g, '-')
+      const filePath = `uploads/splash/${Date.now()}-${safeName}.${extension}`
+
+      // Get buffer from file
+      let fileBuffer
+      if (file.tmpPath) {
+        const fs = require('fs')
+        fileBuffer = fs.readFileSync(file.tmpPath)
+      } else if (file.buffer) {
+        fileBuffer = file.buffer
+      } else {
+        throw new Error('File buffer not found')
+      }
+
+      // Convert to high-quality JPEG
+      const jpegBuffer = await sharp(fileBuffer)
+        .flatten({ background: '#ffffff' })
+        .jpeg({ quality: 100, mozjpeg: true })
+        .rotate() // auto-rotate based on EXIF
+        .toBuffer()
+
+      // Upload to Supabase
+      const { error } = await this.localFilesService.supabase.storage
+        .from(this.localFilesService.getBucket())
+        .upload(filePath, jpegBuffer, {
+          contentType: 'image/jpeg',
+          cacheControl: '3600',
+          upsert: true,
+        })
+
+      if (error) {
+        throw new Error(`Upload failed: ${error.message}`)
+      }
+
+      return { path: filePath, mimeType: 'image/jpeg' }
+    } catch (error) {
+      console.error('Erro ao fazer upload de splash screen:', error)
+      throw error
+    }
   }
 
   /**
@@ -41,11 +100,18 @@ class SplashScreenService {
    * Listar splash screens ativos (para mobile app)
    */
   async findAllActive() {
-    return await this.repository.model
+    const splashScreens = await this.repository.model
       .query()
       .where('is_active', true)
       .orderBy('order', 'asc')
       .fetch()
+
+    // Converter para JSON e adicionar URL pública completa
+    const splashScreensJson = splashScreens.toJSON()
+    return splashScreensJson.map(splash => ({
+      ...splash,
+      image_url: this.getPublicUrl(splash.image_url)
+    }))
   }
 
   /**
@@ -63,9 +129,10 @@ class SplashScreenService {
    * Criar novo splash screen
    */
   async create(data, file = null) {
-    // Upload da imagem se fornecida
+    // Upload da imagem para Supabase se fornecida
     if (file) {
-      data.image_url = await this.uploadImage(file)
+      const { path } = await this.uploadSplashImage(file)
+      data.image_url = path // Salvar apenas o path: uploads/splash/...
     }
 
     return await this.repository.create(data)
@@ -77,13 +144,15 @@ class SplashScreenService {
   async update(id, data, file = null) {
     const splashScreen = await this.findById(id)
 
-    // Upload da nova imagem se fornecida
+    // Upload da nova imagem para Supabase se fornecida
     if (file) {
-      // Deletar imagem antiga se existir
+      // Deletar imagem antiga do Supabase se existir
       if (splashScreen.image_url) {
-        await this.deleteImage(splashScreen.image_url)
+        await this.deleteImageFromSupabase(splashScreen.image_url)
       }
-      data.image_url = await this.uploadImage(file)
+      
+      const { path } = await this.uploadSplashImage(file)
+      data.image_url = path // Salvar apenas o path
     }
 
     return await this.repository.update(id, data)
@@ -95,9 +164,9 @@ class SplashScreenService {
   async delete(id) {
     const splashScreen = await this.findById(id)
 
-    // Deletar imagem associada
+    // Deletar imagem do Supabase
     if (splashScreen.image_url) {
-      await this.deleteImage(splashScreen.image_url)
+      await this.deleteImageFromSupabase(splashScreen.image_url)
     }
 
     return await this.repository.delete(id)
@@ -124,47 +193,16 @@ class SplashScreenService {
   }
 
   /**
-   * Upload de imagem
+   * Deletar imagem do Supabase Storage
    */
-  async uploadImage(file) {
-    const fileName = `${Date.now()}_${file.clientName}`
-    const uploadPath = Helpers.publicPath('uploads/splash_screens')
-
-    // Criar diretório se não existir
+  async deleteImageFromSupabase(imagePath) {
     try {
-      await fs.mkdir(uploadPath, { recursive: true })
-    } catch (error) {
-      console.error('Erro ao criar diretório:', error)
-    }
+      const { error } = await this.localFilesService.supabase.storage
+        .from(this.localFilesService.getBucket())
+        .remove([imagePath])
 
-    await file.move(uploadPath, {
-      name: fileName,
-      overwrite: true
-    })
-
-    if (!file.moved()) {
-      throw new Error(file.error())
-    }
-
-    // Retornar URL completa
-    return `/uploads/splash_screens/${fileName}`
-  }
-
-  /**
-   * Deletar imagem
-   */
-  async deleteImage(imageUrl) {
-    try {
-      // Extrair caminho do arquivo da URL
-      const fileName = imageUrl.split('/').pop()
-      const fullPath = Helpers.publicPath(`uploads/splash_screens/${fileName}`)
-
-      // Verificar se arquivo existe e deletar
-      try {
-        await fs.access(fullPath)
-        await fs.unlink(fullPath)
-      } catch (error) {
-        // Arquivo não existe, ignorar
+      if (error) {
+        console.error('Erro ao deletar imagem do Supabase:', error)
       }
     } catch (error) {
       console.error('Erro ao deletar imagem:', error)
