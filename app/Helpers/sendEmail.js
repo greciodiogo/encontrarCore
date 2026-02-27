@@ -1,10 +1,12 @@
 const nodemailer = require('nodemailer')
 const Env = use("Env");
+const { getEmailConfig, detectEmailType } = require('../Config/emailTypes');
 
 /**
  * Classe unificada de envio de emails
  * Suporta Resend (recomendado) ou Gmail/SMTP (fallback)
  * Configuração via .env: EMAIL_PROVIDER=resend ou EMAIL_PROVIDER=nodemailer
+ * Emails dedicados por função (automático)
  */
 class EnvioEmail {
   constructor() {
@@ -21,9 +23,7 @@ class EnvioEmail {
           this.provider = 'nodemailer';
         } else {
           this.resend = new Resend(apiKey);
-          this.resendFrom = Env.get('RESEND_FROM_EMAIL', 'Encontrar <noreply@encontrarshopping.com>');
-          this.resendReplyTo = Env.get('RESEND_REPLY_TO', 'encontrarmarketing@gmail.com');
-          console.log('✅ Email provider: Resend');
+          console.log('✅ Email provider: Resend (com emails dedicados)');
         }
       } catch (error) {
         console.warn('⚠️  Resend não disponível, usando Gmail como fallback:', error.message);
@@ -45,6 +45,8 @@ class EnvioEmail {
    * @param {string} emailConfig.html - HTML (opcional)
    * @param {Array} emailConfig.ccEmail - Lista CC (opcional)
    * @param {Array} emailConfig.attachment - Anexos (opcional)
+   * @param {string} emailConfig.type - Tipo do email (opcional: transactional, orders, support, marketing, sellers, notifications)
+   * @param {string} emailConfig.context - Contexto para detecção automática (opcional)
    * @param {Function} cb - Callback (opcional)
    */
   async emailService(emailConfig, cb) {
@@ -59,6 +61,14 @@ class EnvioEmail {
       return Promise.reject(error);
     }
 
+    // Detectar ou usar tipo de email especificado
+    const emailType = emailConfig.type || detectEmailType(emailConfig);
+    const typeConfig = getEmailConfig(emailType);
+    
+    // Adicionar configuração do tipo ao emailConfig
+    emailConfig._typeConfig = typeConfig;
+    emailConfig._detectedType = emailType;
+
     // Usar Resend ou Gmail baseado na configuração
     if (this.provider === 'resend') {
       return await this.sendViaResend(emailConfig, cb);
@@ -68,16 +78,19 @@ class EnvioEmail {
   }
 
   /**
-   * Enviar via Resend (novo)
+   * Enviar via Resend (novo) - com emails dedicados
    */
   async sendViaResend(emailConfig, cb) {
     try {
+      const typeConfig = emailConfig._typeConfig;
+      const emailType = emailConfig._detectedType;
+      
       const emailData = {
-        from: this.resendFrom,
+        from: typeConfig.from,
         to: emailConfig.email,
         subject: emailConfig.subject,
         html: emailConfig.html || emailConfig.text,
-        reply_to: this.resendReplyTo
+        reply_to: typeConfig.replyTo
       };
 
       // Adicionar texto plano se disponível
@@ -97,7 +110,7 @@ class EnvioEmail {
 
       // Adicionar tags para tracking
       emailData.tags = {
-        category: 'transactional',
+        category: emailType,
         source: 'encontrar-backend'
       };
 
@@ -108,11 +121,14 @@ class EnvioEmail {
         messageId: result.data?.id,
         accepted: [emailConfig.email],
         response: 'Email sent via Resend',
-        provider: 'resend'
+        provider: 'resend',
+        emailType: emailType,
+        from: typeConfig.from
       };
 
-      console.log('✅ Email sent via Resend:', {
+      console.log(`✅ Email sent via Resend [${emailType}]:`, {
         id: result.data?.id,
+        from: typeConfig.from,
         to: emailConfig.email,
         subject: emailConfig.subject
       });
