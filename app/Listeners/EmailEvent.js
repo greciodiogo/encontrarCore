@@ -11,6 +11,7 @@ EmailEvent.sendEmail = async (
     ccEmail: [],
     attachment: [],
     text:null,
+    html: null,
   }
 ) => {
    EnvioEmail.emailService(emailConfig);
