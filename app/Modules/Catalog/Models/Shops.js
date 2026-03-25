@@ -13,6 +13,10 @@ class Shops extends Model {
     return this.hasMany('App/Modules/Catalog/Models/Product', 'shopId', 'id')
   }
 
+  businessHours() {
+    return this.hasMany('App/Modules/Catalog/Models/ShopBusinessHours', 'shop_id', 'id')
+  }
+
   static get table () {
     return 'shops'
   }

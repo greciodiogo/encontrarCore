@@ -2,6 +2,7 @@
     'use strict'
     const Database = use("Database");
     const ShopRepository = use("App/Modules/Catalog/Repositories/ShopRepository");
+    const ShopStatusService = use("App/Modules/Catalog/Services/ShopStatusService");
 
     class ShopService{
         
@@ -37,16 +38,30 @@
      */
     async findShopById(Id) {
       const data = await new ShopRepository()
-        .findById(Id, '*', ['products'])
+        .findById(Id, '*', ['products', 'businessHours'])
         .first();
-        return await data
+      
+      if (data) {
+        // Adiciona status calculado dinamicamente
+        const currentStatus = await new ShopStatusService().getCurrentStatus(data);
+        data.current_status = currentStatus;
+      }
+      
+      return await data
     }
 
     async findShopByUserId(UserId) {
       const data = await new ShopRepository()
-        .findShopByUserId(UserId, '*', ['products'])
+        .findShopByUserId(UserId, '*', ['products', 'businessHours'])
         .first();
-        return await data
+      
+      if (data) {
+        // Adiciona status calculado dinamicamente
+        const currentStatus = await new ShopStatusService().getCurrentStatus(data);
+        data.current_status = currentStatus;
+      }
+      
+      return await data
     }
 
     /**
