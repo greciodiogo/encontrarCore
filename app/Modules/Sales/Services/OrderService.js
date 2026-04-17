@@ -5,6 +5,7 @@ const OrderRepository = use("App/Modules/Sales/Repositories/OrderRepository")
 
 const CreateOrderUseCase = use('App/Modules/Sales/Services/CreateOrder/CreateOrderUseCase')
 const FirebaseService = use('App/Services/FirebaseService')
+const WebhookService = use('App/Services/WebhookService')
 
     class OrderService{
         
@@ -144,10 +145,17 @@ const FirebaseService = use('App/Services/FirebaseService')
        // Enviar notificações em background (não aguardar)
        if (order && order.id) {
          const orderItems = orderData.items || []
-         // Dispara as notificações sem bloquear a resposta
+         
+         // 1. Notificações Firebase (push notifications para mobile)
          const firebaseService = new FirebaseService()
          firebaseService.notifyNewOrder(order, orderItems).catch(error => {
-           console.error('Error sending notifications for new order:', error.message)
+           console.error('Error sending Firebase notifications:', error.message)
+         })
+         
+         // 2. Webhook para API principal (notificações no dashboard)
+         const webhookService = new WebhookService()
+         webhookService.notifyNewOrder(order, orderItems).catch(error => {
+           console.error('Error sending webhook notification:', error.message)
          })
        }
        
