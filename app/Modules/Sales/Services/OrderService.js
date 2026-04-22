@@ -137,10 +137,11 @@ const WebhookService = use('App/Services/WebhookService')
      * Criar uma nova ordem
      * @param {Object} orderData - Dados da ordem (items, delivery, payment, etc)
      * @param {number} userId - ID do utilizador (opcional)
+     * @param {Object} request - Request object (opcional)
      * @returns {Object} Ordem criada
      */
-    async createdOrders(orderData, userId = null) {
-       const order = await new CreateOrderUseCase().execute(orderData, userId);
+    async createdOrders(orderData, userId = null, request = null) {
+       const order = await new CreateOrderUseCase().execute(orderData, userId, request);
        
        // Enviar notificações em background (não aguardar)
        if (order && order.id) {

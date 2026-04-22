@@ -4,11 +4,11 @@ const ShopOrderFactory = use('App/Modules/Sales/Services/CreateOrder/ShopOrderFa
 const NotCreatedException = use("App/Exceptions/NotCreatedException");
 
 class CreateOrderUseCase {
-  async execute (orderData, userId = null) {
+  async execute (orderData, userId = null, request = null) {
     const trx = await Database.beginTransaction()
     
     try {
-      const order = await new OrderFactory().create(orderData, userId, trx)
+      const order = await new OrderFactory().create(orderData, userId, trx, request)
       if(!order) throw new NotCreatedException("Pedido Não foi criado");
 
       await new ShopOrderFactory().createFromOrder(order, trx)

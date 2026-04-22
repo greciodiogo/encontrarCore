@@ -24,6 +24,7 @@ const globalMiddleware = [
   'Adonis/Middleware/BodyParser',
   'App/Middleware/ConvertEmptyStringsToNull',
   'Adonis/Acl/Init',
+  'App/Middleware/PlatformTracker',  // Tracking de plataforma (Android/iOS/Web)
   'App/Middleware/ErrorHandler'  // Middleware de tratamento de erros (deve ser o último)
 ]
 

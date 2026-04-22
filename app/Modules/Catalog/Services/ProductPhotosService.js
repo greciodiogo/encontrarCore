@@ -346,9 +346,9 @@ class ProductPhotosService {
     // Save photo with thumbnail and placeholder
     await photo.save()
 
-    // Update product photosOrder
+    // Update product photosOrder - nova foto no início
     if (product.photosOrder) {
-      product.photosOrder = [...product.photosOrder.split(','), photo.id.toString()].join(',')
+      product.photosOrder = [photo.id.toString(), ...product.photosOrder.split(',')].join(',')
     } else {
       product.photosOrder = photo.id.toString()
     }
@@ -385,9 +385,9 @@ class ProductPhotosService {
     photo.thumbnailPath = await this.localFilesService.createPhotoThumbnail(file)
     await photo.save()
 
-    // Update product photosOrder
+    // Update product photosOrder - nova foto no início
     if (product.photosOrder) {
-      product.photosOrder = [...product.photosOrder.split(','), photo.id.toString()].join(',')
+      product.photosOrder = [photo.id.toString(), ...product.photosOrder.split(',')].join(',')
     } else {
       product.photosOrder = photo.id.toString()
     }

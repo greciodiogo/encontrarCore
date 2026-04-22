@@ -45,7 +45,7 @@ class OrderController{
     }
     
     try {
-      const data = await new OrderService().createdOrders({...ModelPayload}, userId);
+      const data = await new OrderService().createdOrders({...ModelPayload}, userId, request);
       return response.created(data, {message: "Registro efetuado com sucesso"});
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
