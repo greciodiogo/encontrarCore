@@ -168,7 +168,11 @@ class OrderFactory {
         country: deliveryData.country || 'N/A',
         methodId: deliveryMethod.id,
         price: price,
-        addressEntityId: addressId || null
+        addressEntityId: addressId || null,
+        // Campos de agendamento
+        delivery_option: deliveryData.delivery_option || 'standard',
+        scheduled_date: deliveryData.scheduled_date || null,
+        scheduled_time: deliveryData.scheduled_time || null
       }
       const orderDelivery = await new OrderDeliveriesRepository().create(deliveryPayload)
       return {

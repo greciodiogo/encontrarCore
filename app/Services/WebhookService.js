@@ -21,6 +21,14 @@ class WebhookService {
       
       console.log(`📤 Enviando notificação de pedido para API principal: ${url}`)
       
+      // Buscar informações completas de delivery
+      const Database = use('Database')
+      const delivery = await Database
+        .select('*')
+        .from('order_deliveries')
+        .where('id', order.deliveryId)
+        .first()
+      
       const notificationData = {
         type: 'new_order',
         title: `Novo pedido #${order.order_number || order.id}`,
@@ -38,10 +46,13 @@ class WebhookService {
           contactPhone: order.contactPhone,
           fullName: order.fullName,
           contactEmail: order.contactEmail,
-          // Adicionar informações de delivery e payment se disponíveis
+          // Adicionar informações completas de delivery
           delivery: {
             id: order.deliveryId,
-            price: order.delivery_price || 0
+            price: delivery?.price || 0,
+            delivery_option: delivery?.delivery_option || 'standard',
+            scheduled_date: delivery?.scheduled_date || null,
+            scheduled_time: delivery?.scheduled_time || null
           },
           payment: {
             id: order.paymentId
