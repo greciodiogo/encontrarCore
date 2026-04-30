@@ -5,6 +5,77 @@ const Database = use('Database')
 class DeliveryFeeCalculatorService {
   
   /**
+   * Cache de configurações para evitar múltiplas queries
+   */
+  constructor() {
+    this.settingsCache = null
+    this.cacheExpiry = null
+  }
+  
+  /**
+   * Busca configurações do banco de dados com cache de 5 minutos
+   */
+  async getSettings() {
+    const now = Date.now()
+    
+    // Se cache ainda é válido, retornar do cache
+    if (this.settingsCache && this.cacheExpiry && now < this.cacheExpiry) {
+      return this.settingsCache
+    }
+    
+    try {
+      const settings = await Database
+        .select('key', 'value', 'type')
+        .from('delivery_settings')
+      
+      // Converter para objeto com valores tipados
+      const config = {}
+      settings.forEach(setting => {
+        let value = setting.value
+        
+        // Converter tipo
+        if (setting.type === 'number') {
+          value = parseFloat(value)
+        } else if (setting.type === 'boolean') {
+          value = value === 'true' || value === '1'
+        } else if (setting.type === 'json') {
+          value = JSON.parse(value)
+        }
+        
+        config[setting.key] = value
+      })
+      
+      // Valores padrão caso não existam no banco
+      const defaults = {
+        'delivery.default_fee': 1000,
+        'delivery.extra_km_fee': 100,
+        'delivery.default_radius_km': 5,
+        'delivery.base_location_lat': -8.9167,
+        'delivery.base_location_lng': 13.1833,
+        'delivery.min_order_for_free_delivery': 0
+      }
+      
+      // Mesclar com defaults
+      this.settingsCache = { ...defaults, ...config }
+      this.cacheExpiry = now + (5 * 60 * 1000) // Cache por 5 minutos
+      
+      return this.settingsCache
+    } catch (error) {
+      console.error('[DELIVERY FEE] Erro ao buscar configurações:', error)
+      
+      // Retornar defaults em caso de erro
+      return {
+        'delivery.default_fee': 1000,
+        'delivery.extra_km_fee': 100,
+        'delivery.default_radius_km': 5,
+        'delivery.base_location_lat': -8.9167,
+        'delivery.base_location_lng': 13.1833,
+        'delivery.min_order_for_free_delivery': 0
+      }
+    }
+  }
+  
+  /**
    * Calcula a distância entre dois pontos usando a fórmula de Haversine
    * @param {number} lat1 - Latitude do ponto 1
    * @param {number} lon1 - Longitude do ponto 1
@@ -45,6 +116,14 @@ class DeliveryFeeCalculatorService {
     try {
       console.log(`[DELIVERY FEE] Calculando taxa para coordenadas: ${userLat}, ${userLng}`)
       
+      // Buscar configurações
+      const settings = await this.getSettings()
+      const defaultFee = settings['delivery.default_fee']
+      const extraKmFee = settings['delivery.extra_km_fee']
+      const defaultRadius = settings['delivery.default_radius_km']
+      
+      console.log(`[DELIVERY FEE] Configurações: Taxa padrão=${defaultFee} Kz, Extra/km=${extraKmFee} Kz, Raio padrão=${defaultRadius} km`)
+      
       // 1. Buscar todas as zonas de entrega com coordenadas
       const zones = await Database
         .select('id', 'name', 'price', 'latitude', 'longitude', 'radius_km')
@@ -56,10 +135,10 @@ class DeliveryFeeCalculatorService {
       console.log(`[DELIVERY FEE] Encontradas ${zones.length} zonas configuradas`)
       
       if (zones.length === 0) {
-        // Se não há zonas configuradas, usar taxa padrão
-        console.log('[DELIVERY FEE] Nenhuma zona configurada, usando taxa padrão')
+        // Se não há zonas configuradas, usar taxa padrão das configurações
+        console.log(`[DELIVERY FEE] Nenhuma zona configurada, usando taxa padrão: ${defaultFee} Kz`)
         return {
-          fee: 1000, // Taxa padrão: 1000 Kz
+          fee: defaultFee,
           zone: 'Zona não mapeada',
           distance: null,
           address: null,
@@ -83,9 +162,9 @@ class DeliveryFeeCalculatorService {
         }
       })
       
-      // 3. Filtrar zonas dentro do raio de cobertura
+      // 3. Filtrar zonas dentro do raio de cobertura (usar raio da zona ou raio padrão)
       const zonesInRange = zonesWithDistance.filter(zone => 
-        zone.distance <= (zone.radius_km || 5)
+        zone.distance <= (zone.radius_km || defaultRadius)
       )
       
       console.log(`[DELIVERY FEE] ${zonesInRange.length} zonas dentro do raio`)
@@ -113,13 +192,14 @@ class DeliveryFeeCalculatorService {
         prev.distance < current.distance ? prev : current
       )
       
-      // Taxa base + taxa adicional por km extra
-      const extraDistance = nearestZone.distance - (nearestZone.radius_km || 5)
-      const extraFee = extraDistance > 0 ? extraDistance * 100 : 0 // 100 Kz por km extra
+      // Taxa base + taxa adicional por km extra (usando configuração)
+      const zoneRadius = nearestZone.radius_km || defaultRadius
+      const extraDistance = nearestZone.distance - zoneRadius
+      const extraFee = extraDistance > 0 ? extraDistance * extraKmFee : 0
       const totalFee = Math.round(nearestZone.price + extraFee)
       
       console.log(`[DELIVERY FEE] Fora da zona: ${nearestZone.name} (+${extraDistance.toFixed(2)} km extra)`)
-      console.log(`[DELIVERY FEE] Taxa calculada: ${totalFee} Kz (base: ${nearestZone.price} + extra: ${extraFee})`)
+      console.log(`[DELIVERY FEE] Taxa calculada: ${totalFee} Kz (base: ${nearestZone.price} + extra: ${Math.round(extraFee)})`)
       
       return {
         fee: totalFee,
@@ -135,9 +215,17 @@ class DeliveryFeeCalculatorService {
     } catch (error) {
       console.error('[DELIVERY FEE] Erro ao calcular taxa:', error)
       
-      // Fallback: taxa padrão
+      // Fallback: buscar taxa padrão ou usar 1000
+      let defaultFee = 1000
+      try {
+        const settings = await this.getSettings()
+        defaultFee = settings['delivery.default_fee']
+      } catch (e) {
+        // Ignorar erro ao buscar configurações
+      }
+      
       return {
-        fee: 1000,
+        fee: defaultFee,
         zone: 'Erro no cálculo',
         distance: null,
         address: null,

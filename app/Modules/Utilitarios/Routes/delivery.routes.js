@@ -14,4 +14,18 @@ module.exports = function (ApiRoute, Route) {
   // GET /api/delivery/address-by-coordinates?lat=X&lng=Y
   Route.get('/api/delivery/address-by-coordinates', 'DeliveryController.getAddressByCoordinates')
     .namespace('App/Modules/Utilitarios/Controllers')
+  
+  // Gerenciar configurações de entrega
+  // GET /api/delivery/settings - Listar todas as configurações
+  Route.get('/api/delivery/settings', 'DeliverySettingsController.index')
+    .namespace('App/Modules/Utilitarios/Controllers')
+  
+  // GET /api/delivery/settings/:key - Buscar configuração específica
+  Route.get('/api/delivery/settings/:key', 'DeliverySettingsController.show')
+    .namespace('App/Modules/Utilitarios/Controllers')
+  
+  // PUT /api/delivery/settings/:key - Atualizar configuração
+  // Body: { value: "novo_valor" }
+  Route.put('/api/delivery/settings/:key', 'DeliverySettingsController.update')
+    .namespace('App/Modules/Utilitarios/Controllers')
 }
