@@ -1,15 +1,11 @@
 'use strict'
 
-const Route = use('Route')
-
-Route.group(() => {
-  // Listar tags ativas (público)
-  Route.get('search-tags', 'SearchTagController.index')
-  
-  // Incrementar contador de cliques (público)
-  Route.post('search-tags/:id/click', 'SearchTagController.incrementClick')
-})
-  .prefix('api')
-  .namespace('App/Modules/Catalog/Controllers')
-
-module.exports = Route
+module.exports = (ApiRoute, Route) => {
+  ApiRoute(() => {
+    // Listar tags ativas (público)
+    Route.get('/', 'SearchTagController.index')
+    
+    // Incrementar contador de cliques (público)
+    Route.post('/:id/click', 'SearchTagController.incrementClick')
+  }, 'search-tags').namespace('App/Modules/Catalog/Controllers')
+}
