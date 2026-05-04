@@ -40,9 +40,10 @@ class CategoriesController{
    * @param {Response} ctx.response
    * @param {Object} ctx.params
    */
-  async getSubcategories ({ params, response }) {
+  async getSubcategories ({ params, request, response }) {
     const parentCategoryId = params.id;
-    const data = await new CategoriesService().getSubcategories(parentCategoryId);
+    const locale = request.locale || 'pt'; // Obter locale do middleware
+    const data = await new CategoriesService().getSubcategories(parentCategoryId, locale);
     return response.ok(data);
   }
   /**

@@ -4,6 +4,7 @@
     const CategoriesRepository = use("App/Modules/Catalog/Repositories/CategoriesRepository");
     const LocalFilesService = use("App/Services/LocalFilesService");
     const NotFoundException = use("App/Exceptions/NotFoundException");
+    const TranslationHelper = use("App/Helpers/TranslationHelper");
 
     class CategoriesService{
         
@@ -14,6 +15,8 @@
 
     async findAllCategoriess(filters) {
       const search = filters.input("search");
+      const locale = filters.locale || 'pt'; // Obter locale do middleware
+      
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 10,
@@ -34,12 +37,26 @@
       
       const result = await query.paginate(options.page, options.perPage || 10);
       
-      // Add iconUrl to each category
+      // Add iconUrl and translate categories
       if (result.data && Array.isArray(result.data)) {
         result.data = result.data.map(cat => {
           const category = cat.toJSON ? cat.toJSON() : cat;
+          
+          // Traduzir campos
+          const translated = TranslationHelper.translateObject(
+            category,
+            ['name', 'description'],
+            locale
+          );
+          
+          // Limpar campos de tradução
+          const cleaned = TranslationHelper.cleanTranslationFields(
+            translated,
+            ['name', 'description']
+          );
+          
           return {
-            ...category,
+            ...cleaned,
             iconUrl: cat.iconUrl || null
           };
         });
@@ -49,8 +66,9 @@
     }
 
     async buildCategoriesTree(filters) {
+      const locale = filters.locale || 'pt'; // Obter locale do middleware
       const selectColumn =
-      `categories.id, categories.name, categories.description, categories.slug, categories."parentCategoryId", categories.icon_path`;
+      `categories.id, categories.name, categories.name_en, categories.description, categories.description_en, categories.slug, categories."parentCategoryId", categories.icon_path`;
       const search = filters.input("search");
 
       const options = {
@@ -64,8 +82,21 @@
         }).fetch();
 
         const categories = categoriesResult.toJSON();
+        
+        // Traduzir categorias
+        const translatedCategories = categories.map(cat => {
+          const translated = TranslationHelper.translateObject(
+            cat,
+            ['name', 'description'],
+            locale
+          );
+          return TranslationHelper.cleanTranslationFields(
+            translated,
+            ['name', 'description']
+          );
+        });
 
-      return this.buildTree(categories);
+      return this.buildTree(translatedCategories);
     }
 
     buildTree(categories) {
@@ -99,11 +130,12 @@
     /**
      * Get subcategories of a specific category
      * @param {number} parentCategoryId - Parent category ID
+     * @param {string} locale - Language code (pt, en)
      * @returns {Promise<Array>} Array of subcategories
      */
-    async getSubcategories(parentCategoryId) {
+    async getSubcategories(parentCategoryId, locale = 'pt') {
       const selectColumn =
-        `categories.id, categories.name, categories.description, categories.slug, categories."parentCategoryId", categories.icon_path`;
+        `categories.id, categories.name, categories.name_en, categories.description, categories.description_en, categories.slug, categories."parentCategoryId", categories.icon_path`;
 
       const subcategoriesResult = await this.categoriesRepository
         .findAll('', { isPaginate: false }, selectColumn)
@@ -112,10 +144,25 @@
 
       const subcategories = subcategoriesResult.toJSON();
 
-      return subcategories.map(cat => ({
-        ...cat,
-        iconUrl: cat.icon_path ? this.getIconUrl(cat.icon_path) : null
-      }));
+      return subcategories.map(cat => {
+        // Traduzir
+        const translated = TranslationHelper.translateObject(
+          cat,
+          ['name', 'description'],
+          locale
+        );
+        
+        // Limpar campos de tradução
+        const cleaned = TranslationHelper.cleanTranslationFields(
+          translated,
+          ['name', 'description']
+        );
+        
+        return {
+          ...cleaned,
+          iconUrl: cat.icon_path ? this.getIconUrl(cat.icon_path) : null
+        };
+      });
     }
 
     /**
