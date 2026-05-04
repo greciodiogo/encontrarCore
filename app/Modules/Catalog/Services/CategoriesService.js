@@ -17,6 +17,11 @@
       const search = filters.input("search");
       const locale = filters.locale || 'pt'; // Obter locale do middleware
       
+      // DEBUG: Log para verificar locale
+      console.log('🌍 [CategoriesService] Locale recebido:', locale);
+      console.log('🌍 [CategoriesService] filters.locale:', filters.locale);
+      console.log('🌍 [CategoriesService] filters:', Object.keys(filters));
+      
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 10,
@@ -42,12 +47,16 @@
         result.data = result.data.map(cat => {
           const category = cat.toJSON ? cat.toJSON() : cat;
           
+          console.log('🔄 [Before Translation]', { name: category.name, name_en: category.name_en, locale });
+          
           // Traduzir campos
           const translated = TranslationHelper.translateObject(
             category,
             ['name', 'description'],
             locale
           );
+          
+          console.log('✅ [After Translation]', { name: translated.name, name_en: translated.name_en });
           
           // Limpar campos de tradução
           const cleaned = TranslationHelper.cleanTranslationFields(
