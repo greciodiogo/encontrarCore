@@ -15,12 +15,7 @@
 
     async findAllCategoriess(filters) {
       const search = filters.input("search");
-      const locale = filters.locale || 'pt'; // Obter locale do middleware
-      
-      // DEBUG: Log para verificar locale
-      console.log('🌍 [CategoriesService] Locale recebido:', locale);
-      console.log('🌍 [CategoriesService] filters.locale:', filters.locale);
-      console.log('🌍 [CategoriesService] filters:', Object.keys(filters));
+      const locale = filters.locale || 'pt';
       
       const options = {
         page: filters.input("page") || 1,
@@ -44,10 +39,16 @@
       
       // Add iconUrl and translate categories
       if (result.data && Array.isArray(result.data)) {
-        result.data = result.data.map(cat => {
+        console.log(`🌍 [TRANSLATION] Processing ${result.data.length} categories with locale: ${locale}`);
+        
+        result.data = result.data.map((cat, index) => {
           const category = cat.toJSON ? cat.toJSON() : cat;
           
-          console.log('🔄 [Before Translation]', { name: category.name, name_en: category.name_en, locale });
+          console.log(`\n� [Category ${index}] BEFORE:`, {
+            name: category.name,
+            name_en: category.name_en,
+            locale: locale
+          });
           
           // Traduzir campos
           const translated = TranslationHelper.translateObject(
@@ -56,13 +57,21 @@
             locale
           );
           
-          console.log('✅ [After Translation]', { name: translated.name, name_en: translated.name_en });
+          console.log(`✅ [Category ${index}] AFTER:`, {
+            name: translated.name,
+            name_en: translated.name_en
+          });
           
           // Limpar campos de tradução
           const cleaned = TranslationHelper.cleanTranslationFields(
             translated,
             ['name', 'description']
           );
+          
+          console.log(`🧹 [Category ${index}] CLEANED:`, {
+            name: cleaned.name,
+            hasNameEn: 'name_en' in cleaned
+          });
           
           return {
             ...cleaned,

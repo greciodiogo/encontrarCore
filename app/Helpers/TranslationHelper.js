@@ -55,7 +55,8 @@ class TranslationHelper {
 
     fields.forEach(field => {
       const translatedField = `${field}_en`
-      if (item[translatedField]) {
+      // Verificar se o campo traduzido existe (não apenas se é truthy)
+      if (item[translatedField] !== undefined && item[translatedField] !== null) {
         translated[field] = item[translatedField]
       }
     })

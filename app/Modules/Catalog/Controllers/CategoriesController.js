@@ -20,7 +20,7 @@ class CategoriesController{
    */
   async index ({ request, response,  }) {
     const filters = request;
-    filters.locale = request.locale || 'pt'; // Adicionar locale ao filters
+    filters.locale = request.locale || 'pt';
     const data = await new CategoriesService().findAllCategoriess(filters);
     return response.ok(data);
   }
@@ -28,7 +28,7 @@ class CategoriesController{
 
   async buildCategoriesTree ({ request, response,  }) {
     const filters = request;
-    filters.locale = request.locale || 'pt'; // Adicionar locale ao filters
+    filters.locale = request.locale || 'pt';
     const data = await new CategoriesService().buildCategoriesTree(filters);
     return response.ok(data);
   }
