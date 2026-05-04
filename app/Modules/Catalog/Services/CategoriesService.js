@@ -38,17 +38,12 @@
       const result = await query.paginate(options.page, options.perPage || 10);
       
       // Add iconUrl and translate categories
-      if (result.data && Array.isArray(result.data)) {
-        console.log(`🌍 [TRANSLATION] Processing ${result.data.length} categories with locale: ${locale}`);
-        
-        result.data = result.data.map((cat, index) => {
+      // Note: AdonisJS paginate() returns 'rows' not 'data'
+      const categories = result.rows || result.data || [];
+      
+      if (categories && Array.isArray(categories)) {
+        const processedCategories = categories.map((cat) => {
           const category = cat.toJSON ? cat.toJSON() : cat;
-          
-          console.log(`\n� [Category ${index}] BEFORE:`, {
-            name: category.name,
-            name_en: category.name_en,
-            locale: locale
-          });
           
           // Traduzir campos
           const translated = TranslationHelper.translateObject(
@@ -57,30 +52,32 @@
             locale
           );
           
-          console.log(`✅ [Category ${index}] AFTER:`, {
-            name: translated.name,
-            name_en: translated.name_en
-          });
-          
           // Limpar campos de tradução
           const cleaned = TranslationHelper.cleanTranslationFields(
             translated,
             ['name', 'description']
           );
           
-          console.log(`🧹 [Category ${index}] CLEANED:`, {
-            name: cleaned.name,
-            hasNameEn: 'name_en' in cleaned
-          });
-          
           return {
             ...cleaned,
             iconUrl: cat.iconUrl || null
           };
         });
+        
+        // Update result with processed categories
+        result.rows = processedCategories;
+        // Also set data for compatibility
+        result.data = processedCategories;
       }
       
-      return result;
+      // Convert to plain object for response
+      return {
+        total: result.total,
+        perPage: result.perPage,
+        page: result.page,
+        lastPage: result.lastPage,
+        data: result.data || result.rows || []
+      };
     }
 
     async buildCategoriesTree(filters) {
