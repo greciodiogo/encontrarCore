@@ -100,6 +100,23 @@ class TranslationHelper {
 
     return cleaned
   }
+
+  /**
+   * Retorna o valor traduzido de um campo específico
+   * 
+   * @param {object} item - Objeto com dados
+   * @param {string} field - Nome do campo
+   * @param {string} locale - Código do idioma
+   * @returns {string} - Valor traduzido ou original
+   */
+  static translateField(item, field, locale = 'pt') {
+    if (!item || locale === 'pt') {
+      return item[field]
+    }
+
+    const translatedField = `${field}_en`
+    return item[translatedField] || item[field]
+  }
 }
 
 module.exports = TranslationHelper
