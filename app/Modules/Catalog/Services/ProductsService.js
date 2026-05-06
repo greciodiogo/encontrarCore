@@ -11,7 +11,7 @@
 
     async findAllProductss(filters) {
       const search = filters.input("search");
-      const locale = filters.header('accept-language') || 'pt';
+      const locale = filters.locale || 'pt'; // Usar filters.locale como em CategoriesService
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 6,
@@ -37,9 +37,11 @@
       
       // Apply translations to products
       if (result.data) {
-        result.data = result.data.map(product => 
-          TranslationHelper.translateFields(product, ['name', 'description'], locale)
-        );
+        result.data = result.data.map(product => {
+          const productJson = product.toJSON ? product.toJSON() : product;
+          const translated = TranslationHelper.translateObject(productJson, ['name', 'description'], locale);
+          return TranslationHelper.cleanTranslationFields(translated, ['name', 'description']);
+        });
       }
       
       return result;
@@ -47,7 +49,7 @@
     
     async getProductsByCategory(filters, CategoryId) {
       const search = filters.input("search");
-      const locale = filters.header('accept-language') || 'pt';
+      const locale = filters.locale || 'pt'; // Usar filters.locale como em CategoriesService
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 6,
@@ -75,9 +77,11 @@
       
       // Apply translations to products
       if (result.data) {
-        result.data = result.data.map(product => 
-          TranslationHelper.translateFields(product, ['name', 'description'], locale)
-        );
+        result.data = result.data.map(product => {
+          const productJson = product.toJSON ? product.toJSON() : product;
+          const translated = TranslationHelper.translateObject(productJson, ['name', 'description'], locale);
+          return TranslationHelper.cleanTranslationFields(translated, ['name', 'description']);
+        });
       }
       
       return result;
@@ -128,7 +132,7 @@
     async getProductsByShop(filters, ShopId) {
 
       const search = filters.input("search");
-      const locale = filters.header('accept-language') || 'pt';
+      const locale = filters.locale || 'pt'; // Usar filters.locale como em CategoriesService
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 10,
@@ -153,9 +157,11 @@
       
       // Apply translations to products
       if (result.data) {
-        result.data = result.data.map(product => 
-          TranslationHelper.translateFields(product, ['name', 'description'], locale)
-        );
+        result.data = result.data.map(product => {
+          const productJson = product.toJSON ? product.toJSON() : product;
+          const translated = TranslationHelper.translateObject(productJson, ['name', 'description'], locale);
+          return TranslationHelper.cleanTranslationFields(translated, ['name', 'description']);
+        });
       }
       
       return result;
@@ -164,7 +170,7 @@
     async getProductsByCategorySlug(filters, slug) {
       const selectColumn = `products.*`
       const search = filters.input("search");
-      const locale = filters.header('accept-language') || 'pt';
+      const locale = filters.locale || 'pt'; // Usar filters.locale como em CategoriesService
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 10,
@@ -193,9 +199,11 @@
       
       // Apply translations to products
       if (result.data) {
-        result.data = result.data.map(product => 
-          TranslationHelper.translateFields(product, ['name', 'description'], locale)
-        );
+        result.data = result.data.map(product => {
+          const productJson = product.toJSON ? product.toJSON() : product;
+          const translated = TranslationHelper.translateObject(productJson, ['name', 'description'], locale);
+          return TranslationHelper.cleanTranslationFields(translated, ['name', 'description']);
+        });
       }
       
       return result;

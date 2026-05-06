@@ -50,13 +50,19 @@ class ProductsController{
    */
   async show ({ params, request, response  }) {
     const Id = params.id;
-    const locale = request.header('accept-language') || 'pt';
+    const locale = request.locale || 'pt'; // Usar request.locale como em CategoriesService
     const data = await new ProductsService().findProductsById(Id);
     
-    // Apply translation to single product
-    const translatedData = TranslationHelper.translateFields(data, ['name', 'description'], locale);
+    if (!data) {
+      return response.notFound({ message: 'Product not found' });
+    }
     
-    return response.ok(translatedData);
+    // Apply translation to single product
+    const productJson = data.toJSON ? data.toJSON() : data;
+    const translated = TranslationHelper.translateObject(productJson, ['name', 'description'], locale);
+    const cleaned = TranslationHelper.cleanTranslationFields(translated, ['name', 'description']);
+    
+    return response.ok(cleaned);
   }
 
   async getProductsByCategory ({ params, request, response,  }) { 
