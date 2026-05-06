@@ -117,6 +117,18 @@ class TranslationHelper {
     const translatedField = `${field}_en`
     return item[translatedField] || item[field]
   }
+
+  /**
+   * Traduz múltiplos campos de um objeto (alias para translateObject)
+   * 
+   * @param {object} item - Objeto com dados
+   * @param {array} fields - Campos para traduzir
+   * @param {string} locale - Código do idioma
+   * @returns {object} - Objeto com campos traduzidos
+   */
+  static translateFields(item, fields = ['name', 'description'], locale = 'pt') {
+    return this.translateObject(item, fields, locale)
+  }
 }
 
 module.exports = TranslationHelper
