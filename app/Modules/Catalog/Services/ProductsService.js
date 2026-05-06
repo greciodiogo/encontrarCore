@@ -3,6 +3,7 @@
     const Database = use("Database");
     const ProductsRepository = use("App/Modules/Catalog/Repositories/ProductsRepository");
     const ShopService = use('App/Modules/Catalog/Services/ShopService')
+    const TranslationHelper = use('App/Helpers/TranslationHelper')
 
     class ProductsService{
         
@@ -10,6 +11,7 @@
 
     async findAllProductss(filters) {
       const search = filters.input("search");
+      const locale = filters.header('accept-language') || 'pt';
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 6,
@@ -30,11 +32,22 @@
       })
       .where('is_deleted', 0)
       .with('photos')
-      return query.paginate(options.page, options.perPage || 10);
+      
+      const result = await query.paginate(options.page, options.perPage || 10);
+      
+      // Apply translations to products
+      if (result.data) {
+        result.data = result.data.map(product => 
+          TranslationHelper.translateFields(product, ['name', 'description'], locale)
+        );
+      }
+      
+      return result;
     }
     
     async getProductsByCategory(filters, CategoryId) {
       const search = filters.input("search");
+      const locale = filters.header('accept-language') || 'pt';
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 6,
@@ -57,7 +70,17 @@
         }
       })
       .with('photos')
-      return query.paginate(options.page, options.perPage || 10);
+      
+      const result = await query.paginate(options.page, options.perPage || 10);
+      
+      // Apply translations to products
+      if (result.data) {
+        result.data = result.data.map(product => 
+          TranslationHelper.translateFields(product, ['name', 'description'], locale)
+        );
+      }
+      
+      return result;
     }
     /**
      *
@@ -91,15 +114,21 @@
      * @returns
     */
    async findProductsById(Id) {
-     return await new ProductsRepository().findById(Id) 
+     const product = await new ProductsRepository().findById(Id) 
      .with('photos')
      //.where('is_deleted', 0)
      .first();
+     
+     // Note: For single product, we don't have access to request headers here
+     // Translation should be handled at controller level if needed
+     // Or we can add a locale parameter
+     return product;
     }
 
     async getProductsByShop(filters, ShopId) {
 
       const search = filters.input("search");
+      const locale = filters.header('accept-language') || 'pt';
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 10,
@@ -119,12 +148,23 @@
             this.where('visible', true)
           }
         })
-      return query.paginate(options.page, options.perPage || 10);
+      
+      const result = await query.paginate(options.page, options.perPage || 10);
+      
+      // Apply translations to products
+      if (result.data) {
+        result.data = result.data.map(product => 
+          TranslationHelper.translateFields(product, ['name', 'description'], locale)
+        );
+      }
+      
+      return result;
     }
 
     async getProductsByCategorySlug(filters, slug) {
       const selectColumn = `products.*`
       const search = filters.input("search");
+      const locale = filters.header('accept-language') || 'pt';
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 10,
@@ -148,7 +188,17 @@
           }
         })
         .with('photos')
-      return query.paginate(options.page, options.perPage || 10);
+      
+      const result = await query.paginate(options.page, options.perPage || 10);
+      
+      // Apply translations to products
+      if (result.data) {
+        result.data = result.data.map(product => 
+          TranslationHelper.translateFields(product, ['name', 'description'], locale)
+        );
+      }
+      
+      return result;
     }
 
     /**

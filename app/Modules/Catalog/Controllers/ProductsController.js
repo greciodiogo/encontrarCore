@@ -5,6 +5,7 @@
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 const ProductsService = use('App/Modules/Catalog/Services/ProductsService')
+const TranslationHelper = use('App/Helpers/TranslationHelper')
 /**
  * Resourceful controller for interacting with icttrunkouts
  */
@@ -47,10 +48,15 @@ class ProductsController{
    * @param {Response} ctx.response
    
    */
-  async show ({ params, response  }) {
+  async show ({ params, request, response  }) {
     const Id = params.id;
+    const locale = request.header('accept-language') || 'pt';
     const data = await new ProductsService().findProductsById(Id);
-    return response.ok(data);
+    
+    // Apply translation to single product
+    const translatedData = TranslationHelper.translateFields(data, ['name', 'description'], locale);
+    
+    return response.ok(translatedData);
   }
 
   async getProductsByCategory ({ params, request, response,  }) { 
