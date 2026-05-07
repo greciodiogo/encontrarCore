@@ -24,12 +24,18 @@ class ProductsController{
       const filters = request;
       const data = await new ProductsService().findAllProductss(filters);
       
+      // Converter lastPage para número de forma robusta
+      let lastPageValue = data.lastPage || data.pages?.total || 1;
+      if (typeof lastPageValue === 'string') {
+        lastPageValue = Number(lastPageValue);
+      }
+      
       // Converter para objeto simples para evitar erro toObject
       const responseData = {
         total: data.total || data.rows?.length || data.data?.length || 0,
         perPage: data.perPage || data.rows?.length || data.data?.length || 0,
         page: data.page || 1,
-        lastPage: parseInt(data.lastPage) || data.pages?.total || 1,
+        lastPage: lastPageValue,
         data: data.data || data.rows || []
       };
       
@@ -108,12 +114,18 @@ class ProductsController{
       const CategoryId = params.id;
       const data = await new ProductsService().getProductsByCategory(filters, CategoryId);
       
+      // Converter lastPage para número de forma robusta
+      let lastPageValue = data.lastPage || data.pages?.total || 1;
+      if (typeof lastPageValue === 'string') {
+        lastPageValue = Number(lastPageValue);
+      }
+      
       // Converter para objeto simples
       const responseData = {
         total: data.total || data.rows?.length || data.data?.length || 0,
         perPage: data.perPage || data.rows?.length || data.data?.length || 0,
         page: data.page || 1,
-        lastPage: parseInt(data.lastPage) || data.pages?.total || 1,
+        lastPage: lastPageValue,
         data: data.data || data.rows || []
       };
       
@@ -134,12 +146,18 @@ class ProductsController{
       const shopId = params.id;
       const data = await new ProductsService().getProductsByShop(filters, shopId);
       
+      // Converter lastPage para número de forma robusta
+      let lastPageValue = data.lastPage || data.pages?.total || 1;
+      if (typeof lastPageValue === 'string') {
+        lastPageValue = Number(lastPageValue);
+      }
+      
       // Converter para objeto simples
       const responseData = {
         total: data.total || data.rows?.length || data.data?.length || 0,
         perPage: data.perPage || data.rows?.length || data.data?.length || 0,
         page: data.page || 1,
-        lastPage: parseInt(data.lastPage) || data.pages?.total || 1,
+        lastPage: lastPageValue,
         data: data.data || data.rows || []
       };
       
@@ -160,12 +178,18 @@ class ProductsController{
       const slug = params.slug;
       const data = await new ProductsService().getProductsByCategorySlug(filters, slug);
       
+      // Converter lastPage para número de forma robusta
+      let lastPageValue = data.lastPage || data.pages?.total || 1;
+      if (typeof lastPageValue === 'string') {
+        lastPageValue = Number(lastPageValue);
+      }
+      
       // Converter para objeto simples
       const responseData = {
         total: data.total || data.rows?.length || data.data?.length || 0,
         perPage: data.perPage || data.rows?.length || data.data?.length || 0,
         page: data.page || 1,
-        lastPage: parseInt(data.lastPage) || data.pages?.total || 1,
+        lastPage: lastPageValue,
         data: data.data || data.rows || []
       };
       
