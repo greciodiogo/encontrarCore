@@ -20,9 +20,28 @@ class ProductsController{
    
    */
   async index ({ request, response,  }) { 
-    const filters = request;
-    const data = await new ProductsService().findAllProductss(filters);
-    return response.ok(data);
+    try {
+      const filters = request;
+      const data = await new ProductsService().findAllProductss(filters);
+      
+      // Converter para objeto simples para evitar erro toObject
+      const responseData = {
+        total: data.total || data.rows?.length || data.data?.length || 0,
+        perPage: data.perPage || data.rows?.length || data.data?.length || 0,
+        page: data.page || 1,
+        lastPage: data.lastPage || data.pages?.total || 1,
+        data: data.data || data.rows || []
+      };
+      
+      return response.ok(responseData);
+    } catch (error) {
+      console.error('❌ [ProductsController] index - Error:', error.message);
+      return response.status(500).json({
+        success: false,
+        message: 'Error fetching products',
+        error: error.message
+      });
+    }
   } 
   /**
    * Create/save a new icttrunkout.
@@ -33,10 +52,23 @@ class ProductsController{
    * @param {Response} ctx.response
    */
   async store ({ request, response, auth }) {
-    const ModelPayload = request.all();
-    const UserId = auth.user?.id;
-    const data = await new ProductsService().createdProduct({...ModelPayload}, UserId);
-    return response.created(data, {message: "Registo efectuado com sucesso"});
+    try {
+      const ModelPayload = request.all();
+      const UserId = auth.user?.id;
+      const data = await new ProductsService().createdProduct({...ModelPayload}, UserId);
+      
+      // Garantir que data é um objeto simples
+      const productData = data.toJSON ? data.toJSON() : data;
+      
+      return response.created(productData, {message: "Registo efectuado com sucesso"});
+    } catch (error) {
+      console.error('❌ [ProductsController] Error creating product:', error);
+      return response.status(500).json({
+        success: false,
+        message: 'Error creating product',
+        error: error.message
+      });
+    }
   }
 
   /**
@@ -50,7 +82,8 @@ class ProductsController{
    */
   async show ({ params, request, response  }) {
     const Id = params.id;
-    const locale = request.locale || 'pt'; // Usar request.locale como em CategoriesService
+    const locale = request.locale || 'pt';
+    
     const data = await new ProductsService().findProductsById(Id);
     
     if (!data) {
@@ -59,31 +92,92 @@ class ProductsController{
     
     // Apply translation to single product
     const productJson = data.toJSON ? data.toJSON() : data;
-    const translated = TranslationHelper.translateObject(productJson, ['name', 'description'], locale);
-    const cleaned = TranslationHelper.cleanTranslationFields(translated, ['name', 'description']);
     
-    return response.ok(cleaned);
+    const translatedProduct = {
+      ...productJson,
+      name: TranslationHelper.translateField(productJson, 'name', locale),
+      description: TranslationHelper.translateField(productJson, 'description', locale)
+    };
+    
+    return response.ok(translatedProduct);
   }
 
   async getProductsByCategory ({ params, request, response,  }) { 
-    const filters = request;
-    const CategoryId = params.id;
-    const data = await new ProductsService().getProductsByCategory(filters, CategoryId);
-    return response.ok(data);
+    try {
+      const filters = request;
+      const CategoryId = params.id;
+      const data = await new ProductsService().getProductsByCategory(filters, CategoryId);
+      
+      // Converter para objeto simples
+      const responseData = {
+        total: data.total || data.rows?.length || data.data?.length || 0,
+        perPage: data.perPage || data.rows?.length || data.data?.length || 0,
+        page: data.page || 1,
+        lastPage: data.lastPage || data.pages?.total || 1,
+        data: data.data || data.rows || []
+      };
+      
+      return response.ok(responseData);
+    } catch (error) {
+      console.error('❌ [ProductsController] getProductsByCategory - Error:', error.message);
+      return response.status(500).json({
+        success: false,
+        message: 'Error fetching products by category',
+        error: error.message
+      });
+    }
   } 
 
   async getProductsByShop ({ params, request, response }) {
-    const filters = request;
-    const shopId = params.id;
-    const data = await new ProductsService().getProductsByShop(filters, shopId);
-    return response.ok(data);
+    try {
+      const filters = request;
+      const shopId = params.id;
+      const data = await new ProductsService().getProductsByShop(filters, shopId);
+      
+      // Converter para objeto simples
+      const responseData = {
+        total: data.total || data.rows?.length || data.data?.length || 0,
+        perPage: data.perPage || data.rows?.length || data.data?.length || 0,
+        page: data.page || 1,
+        lastPage: data.lastPage || data.pages?.total || 1,
+        data: data.data || data.rows || []
+      };
+      
+      return response.ok(responseData);
+    } catch (error) {
+      console.error('❌ [ProductsController] getProductsByShop - Error:', error.message);
+      return response.status(500).json({
+        success: false,
+        message: 'Error fetching products by shop',
+        error: error.message
+      });
+    }
   }
 
   async getProductsByCategorySlug ({ params, request, response }) {
-    const filters = request;
-    const slug = params.slug;
-    const data = await new ProductsService().getProductsByCategorySlug(filters, slug);
-    return response.ok(data);
+    try {
+      const filters = request;
+      const slug = params.slug;
+      const data = await new ProductsService().getProductsByCategorySlug(filters, slug);
+      
+      // Converter para objeto simples
+      const responseData = {
+        total: data.total || data.rows?.length || data.data?.length || 0,
+        perPage: data.perPage || data.rows?.length || data.data?.length || 0,
+        page: data.page || 1,
+        lastPage: data.lastPage || data.pages?.total || 1,
+        data: data.data || data.rows || []
+      };
+      
+      return response.ok(responseData);
+    } catch (error) {
+      console.error('❌ [ProductsController] getProductsByCategorySlug - Error:', error.message);
+      return response.status(500).json({
+        success: false,
+        message: 'Error fetching products by category slug',
+        error: error.message
+      });
+    }
   }
 
   /**
@@ -95,10 +189,23 @@ class ProductsController{
    * @param {Response} ctx.response
    */
   async update ({ params, request, response }) {
-    const ModelPayload = request.all();
-    const Id = params.id;
-    const data = await new ProductsService().updatedProducts(Id, ModelPayload);
-    return response.ok(data, {message: "Registo actualizado com sucesso"});
+    try {
+      const ModelPayload = request.all();
+      const Id = params.id;
+      const data = await new ProductsService().updatedProducts(Id, ModelPayload);
+      
+      // Garantir que data é um objeto simples
+      const productData = data.toJSON ? data.toJSON() : data;
+      
+      return response.ok(productData, {message: "Registo actualizado com sucesso"});
+    } catch (error) {
+      console.error('❌ [ProductsController] Error updating product:', error);
+      return response.status(500).json({
+        success: false,
+        message: 'Error updating product',
+        error: error.message
+      });
+    }
   }
 
   /**
@@ -110,9 +217,22 @@ class ProductsController{
    * @param {Response} ctx.response
    */
   async destroy ({ params, response }) { 
-    const Id = params.id;
-    const data = await new ProductsService().deleteTemporarilyProducts(Id);
-    return response.ok(data, {message: "Registo excluido com sucesso"});
+    try {
+      const Id = params.id;
+      const data = await new ProductsService().deleteTemporarilyProducts(Id);
+      
+      // Garantir que data é um objeto simples
+      const productData = data.toJSON ? data.toJSON() : data;
+      
+      return response.ok(productData, {message: "Registo excluido com sucesso"});
+    } catch (error) {
+      console.error('❌ [ProductsController] Error deleting product:', error);
+      return response.status(500).json({
+        success: false,
+        message: 'Error deleting product',
+        error: error.message
+      });
+    }
   }
 }
 

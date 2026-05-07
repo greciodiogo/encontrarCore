@@ -11,7 +11,8 @@
 
     async findAllProductss(filters) {
       const search = filters.input("search");
-      const locale = filters.locale || 'pt'; // Usar filters.locale como em CategoriesService
+      const locale = filters.locale || 'pt';
+      
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 6,
@@ -35,13 +36,24 @@
       
       const result = await query.paginate(options.page, options.perPage || 10);
       
+      // AdonisJS pode usar 'rows' ou 'data' dependendo da versão
+      const products = result.rows || result.data || [];
+      
       // Apply translations to products
-      if (result.data) {
-        result.data = result.data.map(product => {
+      if (products && products.length > 0) {
+        const translatedProducts = products.map(product => {
           const productJson = product.toJSON ? product.toJSON() : product;
-          const translated = TranslationHelper.translateObject(productJson, ['name', 'description'], locale);
-          return TranslationHelper.cleanTranslationFields(translated, ['name', 'description']);
+          
+          return {
+            ...productJson,
+            name: TranslationHelper.translateField(productJson, 'name', locale),
+            description: TranslationHelper.translateField(productJson, 'description', locale)
+          };
         });
+        
+        // Update both rows and data for compatibility
+        result.rows = translatedProducts;
+        result.data = translatedProducts;
       }
       
       return result;
@@ -49,7 +61,7 @@
     
     async getProductsByCategory(filters, CategoryId) {
       const search = filters.input("search");
-      const locale = filters.locale || 'pt'; // Usar filters.locale como em CategoriesService
+      const locale = filters.locale || 'pt';
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 6,
@@ -75,13 +87,22 @@
       
       const result = await query.paginate(options.page, options.perPage || 10);
       
-      // Apply translations to products
-      if (result.data) {
-        result.data = result.data.map(product => {
+      // AdonisJS pode usar 'rows' ou 'data'
+      const products = result.rows || result.data || [];
+      
+      // Apply translations to products - PADRÃO FAQ
+      if (products && products.length > 0) {
+        const translatedProducts = products.map(product => {
           const productJson = product.toJSON ? product.toJSON() : product;
-          const translated = TranslationHelper.translateObject(productJson, ['name', 'description'], locale);
-          return TranslationHelper.cleanTranslationFields(translated, ['name', 'description']);
+          return {
+            ...productJson,
+            name: TranslationHelper.translateField(productJson, 'name', locale),
+            description: TranslationHelper.translateField(productJson, 'description', locale)
+          };
         });
+        
+        result.rows = translatedProducts;
+        result.data = translatedProducts;
       }
       
       return result;
@@ -132,7 +153,7 @@
     async getProductsByShop(filters, ShopId) {
 
       const search = filters.input("search");
-      const locale = filters.locale || 'pt'; // Usar filters.locale como em CategoriesService
+      const locale = filters.locale || 'pt';
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 10,
@@ -155,13 +176,22 @@
       
       const result = await query.paginate(options.page, options.perPage || 10);
       
-      // Apply translations to products
-      if (result.data) {
-        result.data = result.data.map(product => {
+      // AdonisJS pode usar 'rows' ou 'data'
+      const products = result.rows || result.data || [];
+      
+      // Apply translations to products - PADRÃO FAQ
+      if (products && products.length > 0) {
+        const translatedProducts = products.map(product => {
           const productJson = product.toJSON ? product.toJSON() : product;
-          const translated = TranslationHelper.translateObject(productJson, ['name', 'description'], locale);
-          return TranslationHelper.cleanTranslationFields(translated, ['name', 'description']);
+          return {
+            ...productJson,
+            name: TranslationHelper.translateField(productJson, 'name', locale),
+            description: TranslationHelper.translateField(productJson, 'description', locale)
+          };
         });
+        
+        result.rows = translatedProducts;
+        result.data = translatedProducts;
       }
       
       return result;
@@ -170,7 +200,7 @@
     async getProductsByCategorySlug(filters, slug) {
       const selectColumn = `products.*`
       const search = filters.input("search");
-      const locale = filters.locale || 'pt'; // Usar filters.locale como em CategoriesService
+      const locale = filters.locale || 'pt';
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 10,
@@ -197,13 +227,22 @@
       
       const result = await query.paginate(options.page, options.perPage || 10);
       
-      // Apply translations to products
-      if (result.data) {
-        result.data = result.data.map(product => {
+      // AdonisJS pode usar 'rows' ou 'data'
+      const products = result.rows || result.data || [];
+      
+      // Apply translations to products - PADRÃO FAQ
+      if (products && products.length > 0) {
+        const translatedProducts = products.map(product => {
           const productJson = product.toJSON ? product.toJSON() : product;
-          const translated = TranslationHelper.translateObject(productJson, ['name', 'description'], locale);
-          return TranslationHelper.cleanTranslationFields(translated, ['name', 'description']);
+          return {
+            ...productJson,
+            name: TranslationHelper.translateField(productJson, 'name', locale),
+            description: TranslationHelper.translateField(productJson, 'description', locale)
+          };
         });
+        
+        result.rows = translatedProducts;
+        result.data = translatedProducts;
       }
       
       return result;
