@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const fs = require('fs').promises;
 const path = require('path');
+const Database = use('Database');
 
 class SplashConfigController {
   /**
@@ -11,19 +12,36 @@ class SplashConfigController {
    */
   async getSplashAnimation({ response }) {
     try {
-      // Configuração pode vir de:
-      // 1. Banco de dados (para controle via dashboard)
-      // 2. Arquivo de configuração
-      // 3. Variáveis de ambiente
-
-      // Por enquanto, configuração estática
-      // TODO: Mover para banco de dados quando tiver dashboard
+      // Buscar configurações do banco de dados
+      const splashColor = await Database
+        .table('settings')
+        .where('name', 'splash_color')
+        .first();
       
+      const splashAnimationUrl = await Database
+        .table('settings')
+        .where('name', 'splash_animation_url')
+        .first();
+      
+      const splashEnabled = await Database
+        .table('settings')
+        .where('name', 'splash_enabled')
+        .first();
+      
+      const splashVersion = await Database
+        .table('settings')
+        .where('name', 'splash_version')
+        .first();
+
+      const version = splashVersion?.value || '1.1.0';
+      const animationUrl = splashAnimationUrl?.value || `https://api.encontrarshopping.com/static/animations/splash_v${version}.json`;
+
       const config = {
-        version: '1.0.0',
-        url: 'https://api.encontrarshopping.com/static/animations/splash_v1.0.0.json',
-        checksum: await this._calculateChecksum(),
-        enabled: true,
+        version: version,
+        url: animationUrl,
+        checksum: await this._calculateChecksum(version),
+        enabled: splashEnabled?.value === 'true' || splashEnabled?.value === true || true,
+        backgroundColor: splashColor?.value || '#FF9900', // Cor padrão laranja
         // Metadados opcionais
         metadata: {
           fileSize: 475000, // bytes
@@ -33,11 +51,11 @@ class SplashConfigController {
         // Opcional: diferentes animações por plataforma
         platforms: {
           android: {
-            url: 'https://api.encontrarshopping.com/static/animations/splash_android_v1.0.0.json',
+            url: animationUrl,
             minVersion: '1.0.0', // Versão mínima do app que suporta
           },
           ios: {
-            url: 'https://api.encontrarshopping.com/static/animations/splash_ios_v1.0.0.json',
+            url: animationUrl,
             minVersion: '1.0.0',
           }
         }
@@ -108,12 +126,11 @@ class SplashConfigController {
    * Calcula checksum MD5 do arquivo de animação
    * @private
    */
-  async _calculateChecksum() {
+  async _calculateChecksum(version = '1.0.0') {
     try {
-      // TODO: Ajustar caminho conforme estrutura do projeto
       const filePath = path.join(
         __dirname,
-        '../../../public/animations/splash_v1.0.0.json'
+        `../../../public/animations/splash_v${version}.json`
       );
 
       const fileContent = await fs.readFile(filePath, 'utf-8');
