@@ -29,7 +29,7 @@ class ProductsController{
         total: data.total || data.rows?.length || data.data?.length || 0,
         perPage: data.perPage || data.rows?.length || data.data?.length || 0,
         page: data.page || 1,
-        lastPage: data.lastPage || data.pages?.total || 1,
+        lastPage: parseInt(data.lastPage) || data.pages?.total || 1,
         data: data.data || data.rows || []
       };
       
@@ -113,7 +113,7 @@ class ProductsController{
         total: data.total || data.rows?.length || data.data?.length || 0,
         perPage: data.perPage || data.rows?.length || data.data?.length || 0,
         page: data.page || 1,
-        lastPage: data.lastPage || data.pages?.total || 1,
+        lastPage: parseInt(data.lastPage) || data.pages?.total || 1,
         data: data.data || data.rows || []
       };
       
@@ -139,7 +139,7 @@ class ProductsController{
         total: data.total || data.rows?.length || data.data?.length || 0,
         perPage: data.perPage || data.rows?.length || data.data?.length || 0,
         page: data.page || 1,
-        lastPage: data.lastPage || data.pages?.total || 1,
+        lastPage: parseInt(data.lastPage) || data.pages?.total || 1,
         data: data.data || data.rows || []
       };
       
@@ -165,7 +165,7 @@ class ProductsController{
         total: data.total || data.rows?.length || data.data?.length || 0,
         perPage: data.perPage || data.rows?.length || data.data?.length || 0,
         page: data.page || 1,
-        lastPage: data.lastPage || data.pages?.total || 1,
+        lastPage: parseInt(data.lastPage) || data.pages?.total || 1,
         data: data.data || data.rows || []
       };
       
