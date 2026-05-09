@@ -16,9 +16,10 @@ class ProductPhotosService {
   /**
    * Get all product photos with pagination and filters
    * @param {Object} filters - Request filters
+   * @param {number} productId - Optional product ID to filter by
    * @returns {Promise<Object>} Paginated photos with metadata
    */
-  async getProductPhotos(filters) {
+  async getProductPhotos(filters, productId = null) {
     const search = filters.input("search");
     const options = {
       page: filters.input("page") || 1,
@@ -33,6 +34,16 @@ class ProductPhotosService {
       .query()
       // .with('product')
       .orderBy(options.orderBy, options.typeOrderBy);
+
+    // Filter by product_id if provided (from URL param or query param)
+    if (productId) {
+      query = query.where('product_id', productId);
+    } else {
+      const productIdFromQuery = filters.input('product_id');
+      if (productIdFromQuery) {
+        query = query.where('product_id', productIdFromQuery);
+      }
+    }
 
     // Apply search filter if provided
     if (search) {
