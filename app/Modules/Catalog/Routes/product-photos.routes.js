@@ -7,6 +7,9 @@ module.exports = (ApiRoute, Route) =>
     // Get product photos sizes
     Route.get("/photos/sizes", "ProductPhotosController.getSizes");
     
+    // Resolve product image URL (must come before /:photoId to avoid conflict)
+    Route.get("/:productId/image-url", "ProductPhotosController.resolveImageUrl");
+    
     // Get specific product photo (with optional thumbnail query param)
     Route.get("/:productId/photos/:photoId", "ProductPhotosController.show");
     
@@ -19,4 +22,3 @@ module.exports = (ApiRoute, Route) =>
     // Delete product photo
     Route.delete("/:productId/photos/:photoId", "ProductPhotosController.destroy");
   }, 'products').namespace("App/Modules/Catalog/Controllers");
-

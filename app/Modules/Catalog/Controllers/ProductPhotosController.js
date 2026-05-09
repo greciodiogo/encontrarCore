@@ -46,6 +46,99 @@ class ProductPhotosController {
   }
 
   /**
+   * Resolve product image URL
+   * GET /api/products/:productId/image-url
+   * 
+   * Returns the full URL for a product image:
+   * - If product has photos in photos table, returns API URL
+   * - If product has relative path, returns Supabase URL
+   * - If no image, returns null
+   */
+  async resolveImageUrl({ params, response }) {
+    try {
+      const { productId } = params
+      const Database = use('Database')
+      
+      // First, check if product has photos in photos table
+      const photos = await Database
+        .table('photos')
+        .where('product_id', productId)
+        .orderBy('is_primary', 'desc')
+        .orderBy('id', 'asc')
+        .limit(1)
+      
+      if (photos.length > 0) {
+        const photoId = photos[0].id
+        const apiUrl = `https://portal-api.encontrarshopping.com/api/products/${productId}/photos/${photoId}`
+        return response.ok({
+          status: 'success',
+          data: {
+            url: apiUrl,
+            source: 'api',
+            photoId: photoId
+          }
+        })
+      }
+      
+      // If no photos in table, check if product has image path
+      const product = await Database
+        .table('products')
+        .where('id', productId)
+        .first()
+      
+      if (!product) {
+        throw new NotFoundException('Produto não encontrado')
+      }
+      
+      if (product.image && product.image.trim() !== '') {
+        // If it's already a full URL, return it
+        if (product.image.startsWith('http')) {
+          return response.ok({
+            status: 'success',
+            data: {
+              url: product.image,
+              source: 'direct'
+            }
+          })
+        }
+        
+        // If it's a relative path, construct Supabase URL
+        const supabaseUrl = `https://opfiripapiqozvbopcdc.supabase.co/storage/v1/object/public/${product.image}`
+        return response.ok({
+          status: 'success',
+          data: {
+            url: supabaseUrl,
+            source: 'supabase',
+            originalPath: product.image
+          }
+        })
+      }
+      
+      // No image available
+      return response.ok({
+        status: 'success',
+        data: {
+          url: null,
+          source: 'none'
+        }
+      })
+      
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        return response.notFound({ 
+          status: 'error',
+          message: error.message 
+        })
+      }
+      return response.internalServerError({ 
+        status: 'error',
+        message: 'Erro ao resolver URL da imagem',
+        error: error.message 
+      })
+    }
+  }
+
+  /**
    * Get a specific product photo
    * GET /api/products/:productId/photos/:photoId
    * GET /api/products/:productId/photos/:photoId?thumbnail=true
