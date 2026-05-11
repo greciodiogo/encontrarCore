@@ -33,8 +33,14 @@ class SplashConfigController {
         .where('name', 'splash_version')
         .first();
 
+      const splashAudioUrl = await Database
+        .table('settings')
+        .where('name', 'splash_audio_url')
+        .first();
+
       const version = splashVersion?.value || '1.1.0';
       const animationUrl = splashAnimationUrl?.value || `https://api.encontrarshopping.com/static/animations/splash_v${version}.json`;
+      const audioUrl = splashAudioUrl?.value || null;
 
       const config = {
         version: version,
@@ -42,6 +48,7 @@ class SplashConfigController {
         checksum: await this._calculateChecksum(version),
         enabled: splashEnabled?.value === 'true' || splashEnabled?.value === true || true,
         backgroundColor: splashColor?.value || '#FF9900', // Cor padrão laranja
+        audioUrl: audioUrl, // URL do áudio (opcional)
         // Metadados opcionais
         metadata: {
           fileSize: 475000, // bytes
