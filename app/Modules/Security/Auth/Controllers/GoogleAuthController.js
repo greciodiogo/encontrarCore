@@ -177,7 +177,8 @@ class GoogleAuthController {
           default_phone: user.default_phone,
           default_payment: user.default_payment,
           default_city: user.default_city,
-          default_address: user.default_address
+          default_address: user.default_address,
+          profile_photo_url: user.profile_photo_url
         },
         token: token
       };
