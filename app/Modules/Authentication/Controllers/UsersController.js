@@ -125,6 +125,17 @@ class UsersController{
         extname: photo.extname
       });
 
+      // Buscar foto antiga do usuário para deletar depois
+      const Database = use('Database');
+      const oldUser = await Database
+        .table('users')
+        .where('id', userId)
+        .first();
+
+      const oldPhotoUrl = oldUser?.profile_photo_url;
+
+      console.log('🔍 [PROFILE PHOTO] Foto antiga:', oldPhotoUrl || 'nenhuma');
+
       // Upload to Supabase
       const Env = use('Env');
       const { createClient } = require('@supabase/supabase-js');
@@ -183,6 +194,33 @@ class UsersController{
       });
 
       console.log('✅ [PROFILE PHOTO] Registro atualizado com sucesso');
+
+      // Deletar foto antiga do Supabase (se existir)
+      if (oldPhotoUrl && oldPhotoUrl.includes('profile-photos/')) {
+        try {
+          // Extrair o caminho do arquivo da URL
+          const urlParts = oldPhotoUrl.split('/uploads/');
+          if (urlParts.length > 1) {
+            const oldFilePath = urlParts[1];
+            
+            console.log('🗑️  [PROFILE PHOTO] Deletando foto antiga:', oldFilePath);
+
+            const { error: deleteError } = await supabase.storage
+              .from('uploads')
+              .remove([oldFilePath]);
+
+            if (deleteError) {
+              console.error('⚠️  [PROFILE PHOTO] Erro ao deletar foto antiga:', deleteError.message);
+              // Não bloqueia o fluxo se falhar a deleção
+            } else {
+              console.log('✅ [PROFILE PHOTO] Foto antiga deletada com sucesso');
+            }
+          }
+        } catch (deleteErr) {
+          console.error('⚠️  [PROFILE PHOTO] Erro ao processar deleção:', deleteErr.message);
+          // Não bloqueia o fluxo se falhar a deleção
+        }
+      }
 
       return response.ok({
         profile_photo_url: photoUrl,
