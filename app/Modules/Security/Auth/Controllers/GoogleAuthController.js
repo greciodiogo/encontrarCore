@@ -39,15 +39,40 @@ class GoogleAuthController {
     try {
       // 1. Verificar idToken com Google
       const client = new OAuth2Client();
-      const googleClientId = Env.get('GOOGLE_CLIENT_ID');
+      
+      // Aceitar múltiplos Client IDs (iOS, Android, Web)
+      const googleClientIds = [
+        Env.get('GOOGLE_CLIENT_ID'), // Android
+        '35875106082-b921hse6d9afj2snkhp00nfhuu5ud559.apps.googleusercontent.com', // iOS
+        '595810896987-t259a3bmiujn0938cc4ujv2ukfs8camq.apps.googleusercontent.com', // Web
+      ].filter(Boolean); // Remove undefined/null
       
       console.log('🔍 [GOOGLE AUTH] Verificando idToken com Google...');
-      console.log('   Client ID:', googleClientId);
+      console.log('   Client IDs aceitos:', googleClientIds);
       
-      const ticket = await client.verifyIdToken({
-        idToken,
-        audience: googleClientId,
-      });
+      // Tentar verificar com cada Client ID
+      let ticket = null;
+      let lastError = null;
+      
+      for (const clientId of googleClientIds) {
+        try {
+          ticket = await client.verifyIdToken({
+            idToken,
+            audience: clientId,
+          });
+          console.log(`✅ [GOOGLE AUTH] Token verificado com Client ID: ${clientId}`);
+          break; // Sucesso, sair do loop
+        } catch (err) {
+          console.log(`⚠️  [GOOGLE AUTH] Falha com Client ID ${clientId}: ${err.message}`);
+          lastError = err;
+          continue; // Tentar próximo Client ID
+        }
+      }
+      
+      if (!ticket) {
+        console.error('❌ [GOOGLE AUTH] Token não pôde ser verificado com nenhum Client ID');
+        throw lastError || new Error('Token inválido');
+      }
 
       const payload = ticket.getPayload();
       console.log('✅ [GOOGLE AUTH] Token verificado:', {
