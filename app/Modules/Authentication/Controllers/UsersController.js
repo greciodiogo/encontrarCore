@@ -93,12 +93,8 @@ class UsersController{
   async uploadProfilePhoto ({ params, request, response, auth }) {
     try {
       const userId = params.id;
-      const { photoUrl } = request.all();
 
-      console.log('📸 [PROFILE PHOTO] Upload iniciado:', {
-        userId,
-        photoUrl: photoUrl?.substring(0, 50) + '...'
-      });
+      console.log('📸 [PROFILE PHOTO] Upload iniciado para usuário:', userId);
 
       // Validar que o usuário está autenticado e é o dono do perfil
       if (!auth.user || auth.user.id !== parseInt(userId)) {
@@ -108,25 +104,91 @@ class UsersController{
         });
       }
 
-      if (!photoUrl) {
+      // Get uploaded file
+      const photo = request.file('photo', {
+        types: ['image'],
+        size: '5mb'
+      });
+
+      if (!photo) {
         return response.badRequest({
-          message: 'URL da foto é obrigatória'
+          message: 'Nenhuma foto foi enviada'
         });
       }
 
-      // Atualizar URL da foto no banco de dados
-      const data = await new UsersService().updatedUsers(userId, {
+      console.log('📁 [PROFILE PHOTO] Arquivo recebido:', {
+        clientName: photo.clientName,
+        size: photo.size,
+        type: photo.type
+      });
+
+      // Upload to Supabase
+      const Env = use('Env');
+      const { createClient } = require('@supabase/supabase-js');
+      
+      const supabaseUrl = Env.get('SUPABASE_URL');
+      const supabaseKey = Env.get('SUPABASE_KEY');
+      
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Configuração do Supabase não encontrada');
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // Generate unique filename
+      const timestamp = Date.now();
+      const extension = photo.extname;
+      const fileName = `profile_${userId}_${timestamp}.${extension}`;
+      const filePath = `profile-photos/${fileName}`;
+
+      console.log('☁️  [PROFILE PHOTO] Fazendo upload para Supabase:', filePath);
+
+      // Read file buffer
+      const fs = require('fs');
+      const fileBuffer = fs.readFileSync(photo.tmpPath);
+
+      // Upload to Supabase Storage (bucket: uploads)
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('uploads')
+        .upload(filePath, fileBuffer, {
+          contentType: photo.type,
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error('❌ [PROFILE PHOTO] Erro no upload Supabase:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('✅ [PROFILE PHOTO] Upload Supabase concluído:', uploadData);
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('uploads')
+        .getPublicUrl(filePath);
+
+      const photoUrl = urlData.publicUrl;
+
+      console.log('🔗 [PROFILE PHOTO] URL pública:', photoUrl);
+
+      // Update user record
+      const updatedUser = await new UsersService().updatedUsers(userId, {
         profile_photo_url: photoUrl
       });
 
-      console.log('✅ [PROFILE PHOTO] Foto atualizada com sucesso');
+      console.log('✅ [PROFILE PHOTO] Registro atualizado com sucesso');
 
-      return response.ok(data, {
+      return response.ok({
+        profile_photo_url: photoUrl,
+        user: updatedUser
+      }, {
         message: 'Foto de perfil atualizada com sucesso'
       });
 
     } catch (error) {
       console.error('❌ [PROFILE PHOTO] Erro:', error.message);
+      console.error('Stack:', error.stack);
+      
       return response.internalServerError({
         message: 'Erro ao atualizar foto de perfil',
         error: error.message
