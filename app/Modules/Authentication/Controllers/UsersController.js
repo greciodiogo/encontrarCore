@@ -104,13 +104,14 @@ class UsersController{
         });
       }
 
-      // Get uploaded file
+      // Get uploaded file (mesmo padrão do ProductPhotosController)
       const photo = request.file('photo', {
         types: ['image'],
         size: '5mb'
       });
 
       if (!photo) {
+        console.error('❌ [PROFILE PHOTO] Nenhum arquivo recebido');
         return response.badRequest({
           message: 'Nenhuma foto foi enviada'
         });
@@ -119,7 +120,9 @@ class UsersController{
       console.log('📁 [PROFILE PHOTO] Arquivo recebido:', {
         clientName: photo.clientName,
         size: photo.size,
-        type: photo.type
+        type: photo.type,
+        subtype: photo.subtype,
+        extname: photo.extname
       });
 
       // Upload to Supabase
@@ -130,6 +133,7 @@ class UsersController{
       const supabaseKey = Env.get('SUPABASE_KEY');
       
       if (!supabaseUrl || !supabaseKey) {
+        console.error('❌ [PROFILE PHOTO] Configuração Supabase não encontrada');
         throw new Error('Configuração do Supabase não encontrada');
       }
 
@@ -137,7 +141,7 @@ class UsersController{
 
       // Generate unique filename
       const timestamp = Date.now();
-      const extension = photo.extname;
+      const extension = photo.extname || 'jpg';
       const fileName = `profile_${userId}_${timestamp}.${extension}`;
       const filePath = `profile-photos/${fileName}`;
 
@@ -147,11 +151,13 @@ class UsersController{
       const fs = require('fs');
       const fileBuffer = fs.readFileSync(photo.tmpPath);
 
+      console.log('📦 [PROFILE PHOTO] Buffer lido:', fileBuffer.length, 'bytes');
+
       // Upload to Supabase Storage (bucket: uploads)
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('uploads')
         .upload(filePath, fileBuffer, {
-          contentType: photo.type,
+          contentType: photo.type + '/' + photo.subtype,
           upsert: true
         });
 
