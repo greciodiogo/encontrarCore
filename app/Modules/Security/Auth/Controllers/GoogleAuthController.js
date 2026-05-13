@@ -135,10 +135,18 @@ class GoogleAuthController {
       // 4. Gerar JWT token usando o sistema de autenticação do AdonisJS
       console.log('🔑 [GOOGLE AUTH] Gerando JWT token...');
       
-      // Usar o método generate do auth para criar token sem senha
+      // Buscar o usuário completo do banco (instância do modelo User)
+      const User = use('App/Modules/Security/Users/Models/User');
+      const userModel = await User.find(user.id);
+      
+      if (!userModel) {
+        throw new Error('Usuário não encontrado após criação');
+      }
+      
+      // Usar o método generate do auth para criar token
       const token = await auth
         .withRefreshToken()
-        .generate(user);
+        .generate(userModel);
 
       console.log('✅ [GOOGLE AUTH] Token gerado com sucesso');
 
