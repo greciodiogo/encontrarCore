@@ -38,14 +38,14 @@
      * @returns
      */
     async findUsersById(Id) {
-      const selectColumn = '"id", "firstName", "lastName", "email", "role", "registered" as created_at, "default_phone", "default_payment", "default_city", "default_address"';
+      const selectColumn = '"id", "firstName", "lastName", "email", "role", "registered" as created_at, "default_phone", "default_payment", "default_city", "default_address", "profile_photo_url"';
       return await new UsersRepository().findById(Id, selectColumn) 
         //.where('is_deleted', 0)
         .first();
     }
 
     async findUsersByEmail(Email, role = null, includeDeleted = false) {
-      const selectColumn = '"id", "firstName", "lastName", "email", "role", "registered" as created_at, "default_phone", "default_payment", "default_city", "default_address", "password", "is_deleted"';
+      const selectColumn = '"id", "firstName", "lastName", "email", "role", "registered" as created_at, "default_phone", "default_payment", "default_city", "default_address", "password", "is_deleted", "profile_photo_url"';
       return await new UsersRepository().findAll(null, {}, selectColumn) 
        .where(function () {
           if (!includeDeleted) {
