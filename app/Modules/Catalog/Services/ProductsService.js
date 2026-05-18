@@ -63,12 +63,6 @@
       const search = filters.input("search");
       const locale = filters.locale || 'pt';
       
-      console.log('🌍 [ProductsService] getProductsByCategory - START', {
-        categoryId: CategoryId,
-        locale: locale,
-        search: search
-      });
-      
       const options = {
         page: filters.input("page") || 1,
         perPage: filters.input("perPage") || 6,
@@ -97,18 +91,10 @@
       // AdonisJS pode usar 'rows' ou 'data'
       const products = result.rows || result.data || [];
       
-      console.log('📦 [ProductsService] Products found:', products.length);
-      
       // Apply translations to products - PADRÃO FAQ
       if (products && products.length > 0) {
         const translatedProducts = products.map(product => {
           const productJson = product.toJSON ? product.toJSON() : product;
-          
-          console.log('🔍 [ProductsService] BEFORE translation:', {
-            id: productJson.id,
-            name: productJson.name,
-            name_en: productJson.name_en
-          });
           
           const translated = {
             ...productJson,
@@ -116,19 +102,12 @@
             description: TranslationHelper.translateField(productJson, 'description', locale)
           };
           
-          console.log('✅ [ProductsService] AFTER translation:', {
-            id: translated.id,
-            name: translated.name
-          });
-          
           return translated;
         });
         
         result.rows = translatedProducts;
         result.data = translatedProducts;
       }
-      
-      console.log('📤 [ProductsService] Returning', result.data?.length || result.rows?.length, 'products');
       
       return result;
     }
