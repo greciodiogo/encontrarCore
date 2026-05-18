@@ -112,6 +112,19 @@ class GoogleAuthController {
           console.log('✅ [GOOGLE AUTH] Conta reativada:', user.id);
         } else {
           console.log('👤 [GOOGLE AUTH] Usuário existente:', user.id);
+          
+          // Atualizar foto do Google se mudou ou se não tinha foto
+          if (payload.picture && payload.picture !== user.profile_photo_url) {
+            console.log('🖼️  [GOOGLE AUTH] Atualizando foto do Google...');
+            const Database = use('Database');
+            await Database
+              .table('users')
+              .where('id', user.id)
+              .update({ profile_photo_url: payload.picture });
+            
+            user.profile_photo_url = payload.picture;
+            console.log('✅ [GOOGLE AUTH] Foto atualizada');
+          }
         }
       } else {
         // 3. Criar novo usuário se não existir
@@ -126,7 +139,8 @@ class GoogleAuthController {
           firstName: payload.given_name || payload.name?.split(' ')[0] || 'User',
           lastName: payload.family_name || payload.name?.split(' ').slice(1).join(' ') || '',
           password: hashedPassword,
-          role: 'customer'
+          role: 'customer',
+          profile_photo_url: payload.picture // Salvar foto do Google
         });
 
         console.log('✅ [GOOGLE AUTH] Novo usuário criado:', user.id);
@@ -183,6 +197,11 @@ class GoogleAuthController {
         token: token
       };
 
+      console.log('📦 [GOOGLE AUTH] Dados do usuário:', {
+        id: user.id,
+        email: user.email,
+        profile_photo_url: user.profile_photo_url || 'NULL/UNDEFINED'
+      });
       console.log('🎉 [GOOGLE AUTH] Login com Google concluído com sucesso!');
 
       return response.ok(responseData, {
