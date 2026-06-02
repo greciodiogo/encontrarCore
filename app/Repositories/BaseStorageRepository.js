@@ -118,16 +118,40 @@ class BaseStorageRepository {
       .where(function () {
         if (search) {
           if ((options.typeFilter || options.typeFilter == undefined) && (options.filterTable == 'INTERNA' || options.filterTable == undefined)) {
-            if (options.searchBy instanceof Array) {
-              options.searchBy.forEach((key, index) => {
-                if (index === 0) {
-                  this.whereRaw(`LOWER(${key}) LIKE LOWER(?)`, [`%${search}%`]);
-                  return;
-                }
-                this.orWhereRaw(`LOWER(${key}) LIKE LOWER(?)`, [`%${search}%`]);
-              });
-            } else {
-              this.whereRaw(`LOWER(${options.searchBy}) LIKE LOWER(?)`, [`%${search}%`]);
+            // Extract keywords from search (remove common words in PT and EN)
+            const stopWords = [
+              // Portuguese
+              'tem', 'vende', 'vendem', 'procuro', 'quero', 'busco', 'preciso', 'de', 'um', 'uma', 'o', 'a', 'os', 'as', 'para', 'com', 'sem', 'aqui', 'ai', 'aí', 'e', 'ou',
+              // English
+              'have', 'has', 'sell', 'selling', 'looking', 'want', 'need', 'search', 'searching', 'for', 'the', 'and', 'or', 'with', 'without', 'here', 'there'
+            ];
+            const keywords = search
+              .toLowerCase()
+              .split(/[\s,]+/)
+              .filter(word => word.length > 2 && !stopWords.includes(word))
+              .filter((word, index, self) => self.indexOf(word) === index); // Remove duplicates
+
+            if (keywords.length > 0) {
+              // Build OR conditions for each keyword
+              if (options.searchBy instanceof Array) {
+                keywords.forEach((keyword, keywordIndex) => {
+                  options.searchBy.forEach((key, fieldIndex) => {
+                    if (keywordIndex === 0 && fieldIndex === 0) {
+                      this.whereRaw(`LOWER(${key}) LIKE LOWER(?)`, [`%${keyword}%`]);
+                    } else {
+                      this.orWhereRaw(`LOWER(${key}) LIKE LOWER(?)`, [`%${keyword}%`]);
+                    }
+                  });
+                });
+              } else {
+                keywords.forEach((keyword, index) => {
+                  if (index === 0) {
+                    this.whereRaw(`LOWER(${options.searchBy}) LIKE LOWER(?)`, [`%${keyword}%`]);
+                  } else {
+                    this.orWhereRaw(`LOWER(${options.searchBy}) LIKE LOWER(?)`, [`%${keyword}%`]);
+                  }
+                });
+              }
             }
           }
         }
